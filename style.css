@@ -1,0 +1,63 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: Arial, sans-serif;
+    background: #f5f0ec;
+}
+
+.jogo {
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+#tabuleiro {
+    display: grid;
+
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+
+    width: 600px;
+    height: 600px;
+
+    gap: 5px;
+}
+
+.casa {
+    background: #a9c6dc;
+    border-radius: 8px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 35px;
+    cursor: pointer;
+}
+
+.casa:hover {
+    filter: brightness(0.95);
+}
+
+button {
+    margin-top: 20px;
+
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 16px;
+    cursor: pointer;
+}

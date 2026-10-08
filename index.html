@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Doku-Doku</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- TELA INICIAL -->
+    <div id="telaInicial" class="tela">
+
+        <h1>Doku-Doku</h1>
+
+        <button id="btnInstrucoes">
+            Como jogar
+        </button>
+
+        <h2>Escolha a dificuldade</h2>
+
+        <div class="dificuldades">
+
+            <button class="dificuldade" data-dificuldade="facil">
+                Fácil
+            </button>
+
+            <button class="dificuldade" data-dificuldade="medio">
+                Médio
+            </button>
+
+            <button class="dificuldade" data-dificuldade="dificil">
+                Difícil
+            </button>
+
+        </div>
+
+        <button id="btnComecar">
+            Começar
+        </button>
+
+    </div>
+
+
+    <!-- GUIA DE INSTRUÇÕES -->
+    <div id="telaInstrucoes" class="tela escondido">
+
+        <h1>Como jogar</h1>
+
+        <div class="instrucoes">
+
+            <p>
+                Encontre os 10 pugs escondidos no tabuleiro.
+            </p>
+
+            <p>
+                Os pugs não podem estar na mesma linha ou
+                coluna.
+            </p>
+
+            <p>
+                Dois pugs também não podem ficar em casas
+                adjacentes, incluindo diagonais.
+            </p>
+
+            <!-- Mais instruções serão adicionadas aqui -->
+
+        </div>
+
+        <button id="btnVoltar">
+            Voltar
+        </button>
+
+    </div>
+
+
+    <!-- TELA DO JOGO -->
+    <div id="telaJogo" class="tela escondido">
+
+        <h1>Doku-Doku</h1>
+
+        <div id="informacoes">
+            <span id="dificuldadeAtual"></span>
+        </div>
+
+        <div id="tabuleiro"></div>
+
+        <button id="btnNovoJogo">
+            Novo Jogo
+        </button>
+
+        <button id="btnMenu">
+            Menu
+        </button>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
