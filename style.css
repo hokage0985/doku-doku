@@ -1,63 +1,287 @@
+/* ==========================================================
+   Doku-Doku — estilos
+   ========================================================== */
+
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    font-family: Arial, sans-serif;
-    background: #f5f0ec;
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f7fb;
+  color: #1f2d3d;
 }
 
-.jogo {
-    text-align: center;
+main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* ---------- Telas ---------- */
+
+.tela {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+/* Oculta a tela (ou qualquer elemento) que não está em uso.
+   Fica depois de .tela de propósito, e usa !important para
+   vencer qualquer "display" definido em outras regras. */
+.escondido {
+  display: none !important;
 }
 
 h1 {
-    margin-bottom: 20px;
+  margin: 0;
+  font-size: 2.2rem;
 }
 
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+/* ---------- Botões ---------- */
+
+button {
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #1f2d3d;
+  background-color: #dbe7f5;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #c4d8ef;
+}
+
+button:focus-visible {
+  outline: 3px solid #3d7fd9;
+  outline-offset: 2px;
+}
+
+/* ---------- Dificuldade ---------- */
+
+.area-dificuldade {
+  width: 100%;
+}
+
+.opcoes-dificuldade {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Dificuldade escolhida */
+.dificuldade.selecionada {
+  color: #ffffff;
+  background-color: #3d7fd9;
+  border-color: #2a5fa8;
+}
+
+.dificuldade.selecionada:hover {
+  background-color: #3573c8;
+}
+
+.aviso {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  color: #c0392b;
+  font-weight: bold;
+}
+
+/* ---------- Instruções ---------- */
+
+.texto-instrucoes {
+  width: 100%;
+  padding: 16px 20px;
+  text-align: left;
+  line-height: 1.5;
+  background-color: #ffffff;
+  border-radius: 8px;
+}
+
+.texto-instrucoes h2:not(:first-child) {
+  margin-top: 16px;
+}
+
+.texto-instrucoes p {
+  margin: 0 0 12px;
+}
+
+.texto-instrucoes ul {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+/* ---------- Tela do jogo ---------- */
+
+.painel-jogo {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+}
+
+.painel-jogo p {
+  margin: 0;
+}
+
+.vidas {
+  color: #d6336c;
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+}
+
+/* Mensagem de vitória ou de fim de jogo (reserva a altura para o tabuleiro não pular) */
+.mensagem-jogo {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Tabuleiro: o número de linhas e colunas (--n) é definido pelo JavaScript.
+   Ocupa até 600px e encolhe em telas menores. */
 #tabuleiro {
-    display: grid;
+  --n: 10;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  grid-template-rows: repeat(var(--n), 1fr);
+  gap: 0;
+  width: min(600px, 100%);
+  aspect-ratio: 1 / 1;
+  border: 3px solid #1f2d3d;
+  border-radius: 6px;
+  overflow: hidden;
 
-    grid-template-columns: repeat(10, 1fr);
-    grid-template-rows: repeat(10, 1fr);
-
-    width: 600px;
-    height: 600px;
-
-    gap: 5px;
+  /* Cliques rápidos seguidos não selecionam texto nem dão zoom no celular */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .casa {
-    background: #a9c6dc;
-    border-radius: 8px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    font-size: 35px;
-    cursor: pointer;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(31, 45, 61, 0.25);
+  font-size: calc(min(600px, 88vw) / var(--n) * 0.55);
+  line-height: 1;
+  cursor: pointer;
 }
 
-.casa:hover {
-    filter: brightness(0.95);
+/* Divisa entre regiões: linha mais grossa quando o vizinho de cima / da esquerda é de outra cor */
+.casa.limite-cima {
+  border-top: 3px solid #1f2d3d;
 }
 
-button {
-    margin-top: 20px;
+.casa.limite-esquerda {
+  border-left: 3px solid #1f2d3d;
+}
 
-    padding: 10px 20px;
+/* O efeito de hover só vale onde existe mouse; no celular ele "gruda" após o toque */
+@media (hover: hover) {
+  .casa:hover {
+    filter: brightness(0.9);
+  }
+}
 
-    border: none;
-    border-radius: 8px;
+/* ---------- Estados de uma casa ---------- */
 
-    font-size: 16px;
-    cursor: pointer;
+/* Marcada pelo jogador com X (1º clique) */
+.casa.marcada::after {
+  content: "✕";
+  color: #1f2d3d;
+  font-weight: bold;
+  opacity: 0.55;
+}
+
+/* Palpite certo: o pug aparece e a casa trava */
+.casa.pug::after {
+  content: "🐶";
+}
+
+/* Palpite errado: X vermelho e a casa trava */
+.casa.errada::after {
+  content: "✕";
+  color: #c0392b;
+  font-weight: bold;
+}
+
+.casa.pug,
+.casa.errada,
+#tabuleiro.encerrado .casa {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .casa.pug:hover,
+  .casa.errada:hover,
+  #tabuleiro.encerrado .casa:hover {
+    filter: none;
+  }
+}
+
+/* ---------- Cores das regiões ---------- */
+
+.regiao-0  { background-color: #f4a6a6; }
+.regiao-1  { background-color: #ffd59e; }
+.regiao-2  { background-color: #fff3a3; }
+.regiao-3  { background-color: #b8e6a1; }
+.regiao-4  { background-color: #8fd9c9; }
+.regiao-5  { background-color: #9ec9ff; }
+.regiao-6  { background-color: #b7b4f5; }
+.regiao-7  { background-color: #e2a8ef; }
+.regiao-8  { background-color: #d9c2a6; }
+.regiao-9  { background-color: #c4c9d1; }
+.regiao-10 { background-color: #ffb3d1; }
+.regiao-11 { background-color: #d4e68a; }
+
+.botoes-jogo {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ---------- Telas pequenas ---------- */
+
+@media (max-width: 480px) {
+  main {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  #tabuleiro {
+    border-width: 2px;
+  }
+
+  .casa.limite-cima {
+    border-top-width: 2px;
+  }
+
+  .casa.limite-esquerda {
+    border-left-width: 2px;
+  }
 }

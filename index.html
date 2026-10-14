@@ -1,107 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Doku-Doku</title>
-
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doku-Doku</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <main>
 
     <!-- TELA INICIAL -->
-    <div id="telaInicial" class="tela">
+    <section id="tela-inicial" class="tela">
+      <h1>Doku-Doku</h1>
 
-        <h1>Doku-Doku</h1>
+      <button id="btn-instrucoes" type="button">Como jogar</button>
 
-        <button id="btnInstrucoes">
-            Como jogar
-        </button>
-
-        <h2>Escolha a dificuldade</h2>
-
-        <div class="dificuldades">
-
-            <button class="dificuldade" data-dificuldade="facil">
-                Fácil
-            </button>
-
-            <button class="dificuldade" data-dificuldade="medio">
-                Médio
-            </button>
-
-            <button class="dificuldade" data-dificuldade="dificil">
-                Difícil
-            </button>
-
+      <div class="area-dificuldade">
+        <h2>Dificuldade</h2>
+        <div class="opcoes-dificuldade">
+          <button type="button" class="dificuldade" data-dificuldade="facil">Fácil</button>
+          <button type="button" class="dificuldade" data-dificuldade="medio">Médio</button>
+          <button type="button" class="dificuldade" data-dificuldade="dificil">Difícil</button>
         </div>
+        <p id="aviso-dificuldade" class="aviso" role="alert"></p>
+      </div>
 
-        <button id="btnComecar">
-            Começar
-        </button>
+      <button id="btn-comecar" type="button">Começar</button>
+    </section>
 
-    </div>
+    <!-- TELA DE INSTRUÇÕES -->
+    <section id="tela-instrucoes" class="tela escondido">
+      <h1>Como jogar</h1>
 
+      <div class="texto-instrucoes">
+        <h2>Objetivo</h2>
+        <p>
+          O tabuleiro é dividido em regiões coloridas e há pugs escondidos nele.
+          Use a lógica para descobrir onde está o pug de cada cor.
+        </p>
 
-    <!-- GUIA DE INSTRUÇÕES -->
-    <div id="telaInstrucoes" class="tela escondido">
+        <h2>Regras de posicionamento</h2>
+        <ul>
+          <li>Cada cor tem exatamente um pug. As casas de uma mesma cor sempre estão ligadas, lado com lado.</li>
+          <li>Nunca há dois pugs na mesma linha.</li>
+          <li>Nunca há dois pugs na mesma coluna.</li>
+          <li>Nunca há dois pugs em casas vizinhas, nem na diagonal.</li>
+          <li>Há tantos pugs quantas são as cores, as linhas e as colunas do tabuleiro.</li>
+        </ul>
 
-        <h1>Como jogar</h1>
+        <h2>Como jogar</h2>
+        <ul>
+          <li>Clique uma vez em uma casa para marcar um X, a sua anotação de que ali não há pug.</li>
+          <li>Clique de novo na casa marcada para palpitar que ali há um pug.</li>
+          <li>Se acertar, o pug aparece. Se errar, você perde uma vida (você começa com 3).</li>
+          <li>Você vence ao encontrar todos os pugs e perde se ficar sem vidas.</li>
+        </ul>
+      </div>
 
-        <div class="instrucoes">
-
-            <p>
-                Encontre os 10 pugs escondidos no tabuleiro.
-            </p>
-
-            <p>
-                Os pugs não podem estar na mesma linha ou
-                coluna.
-            </p>
-
-            <p>
-                Dois pugs também não podem ficar em casas
-                adjacentes, incluindo diagonais.
-            </p>
-
-            <!-- Mais instruções serão adicionadas aqui -->
-
-        </div>
-
-        <button id="btnVoltar">
-            Voltar
-        </button>
-
-    </div>
-
+      <button id="btn-voltar" type="button">Voltar</button>
+    </section>
 
     <!-- TELA DO JOGO -->
-    <div id="telaJogo" class="tela escondido">
+    <section id="tela-jogo" class="tela escondido">
+      <h1>Doku-Doku</h1>
 
-        <h1>Doku-Doku</h1>
+      <div class="painel-jogo">
+        <p>Dificuldade: <strong id="dificuldade-atual"></strong></p>
+        <p>Vidas: <span id="vidas" class="vidas"></span></p>
+      </div>
 
-        <div id="informacoes">
-            <span id="dificuldadeAtual"></span>
-        </div>
+      <p id="mensagem-jogo" class="mensagem-jogo" role="status"></p>
 
-        <div id="tabuleiro"></div>
+      <div id="tabuleiro"></div>
 
-        <button id="btnNovoJogo">
-            Novo Jogo
-        </button>
+      <div class="botoes-jogo">
+        <button id="btn-novo-jogo" type="button">Novo Jogo</button>
+        <button id="btn-menu" type="button">Menu</button>
+      </div>
+    </section>
 
-        <button id="btnMenu">
-            Menu
-        </button>
+  </main>
 
-    </div>
-
-
-    <script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
-
 </html>
