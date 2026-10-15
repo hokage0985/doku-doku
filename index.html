@@ -11,28 +11,37 @@
 
     <!-- TELA INICIAL -->
     <section id="tela-inicial" class="tela">
+      <div class="logo-pug" aria-hidden="true"></div>
       <h1>Doku-Doku</h1>
 
       <button id="btn-instrucoes" type="button">Como jogar</button>
 
-      <div class="area-dificuldade">
+      <div class="area-dificuldade cartao">
         <h2>Dificuldade</h2>
         <div class="opcoes-dificuldade">
-          <button type="button" class="dificuldade" data-dificuldade="facil">Fácil</button>
-          <button type="button" class="dificuldade" data-dificuldade="medio">Médio</button>
-          <button type="button" class="dificuldade" data-dificuldade="dificil">Difícil</button>
+          <!-- O texto de .detalhe (tamanho e número de pugs) é preenchido pelo script.js,
+               a partir de CONFIG_DIFICULDADES. -->
+          <button type="button" class="dificuldade" data-dificuldade="facil">
+            <span class="nome">Fácil</span><span class="detalhe"></span>
+          </button>
+          <button type="button" class="dificuldade" data-dificuldade="medio">
+            <span class="nome">Médio</span><span class="detalhe"></span>
+          </button>
+          <button type="button" class="dificuldade" data-dificuldade="dificil">
+            <span class="nome">Difícil</span><span class="detalhe"></span>
+          </button>
         </div>
         <p id="aviso-dificuldade" class="aviso" role="alert"></p>
       </div>
 
-      <button id="btn-comecar" type="button">Começar</button>
+      <button id="btn-comecar" class="botao-principal" type="button">Começar</button>
     </section>
 
     <!-- TELA DE INSTRUÇÕES -->
     <section id="tela-instrucoes" class="tela escondido">
       <h1>Como jogar</h1>
 
-      <div class="texto-instrucoes">
+      <div class="texto-instrucoes cartao">
         <h2>Objetivo</h2>
         <p>
           O tabuleiro é dividido em regiões coloridas e há pugs escondidos nele.
@@ -46,6 +55,13 @@
           <li>Nunca há dois pugs na mesma coluna.</li>
           <li>Nunca há dois pugs em casas vizinhas, nem na diagonal.</li>
           <li>Há tantos pugs quantas são as cores, as linhas e as colunas do tabuleiro.</li>
+        </ul>
+
+        <h2>Dificuldades</h2>
+        <ul>
+          <li><strong>Fácil:</strong> tabuleiro 5×5 com 5 pugs.</li>
+          <li><strong>Médio:</strong> tabuleiro 8×8 com 8 pugs.</li>
+          <li><strong>Difícil:</strong> tabuleiro 10×10 com 10 pugs.</li>
         </ul>
 
         <h2>Como jogar</h2>
@@ -62,11 +78,15 @@
 
     <!-- TELA DO JOGO -->
     <section id="tela-jogo" class="tela escondido">
-      <h1>Doku-Doku</h1>
+      <div class="cabecalho">
+        <div class="logo-pug pequeno" aria-hidden="true"></div>
+        <h1>Doku-Doku</h1>
+      </div>
 
       <div class="painel-jogo">
-        <p>Dificuldade: <strong id="dificuldade-atual"></strong></p>
-        <p>Vidas: <span id="vidas" class="vidas"></span></p>
+        <p class="chip">Dificuldade: <strong id="dificuldade-atual"></strong></p>
+        <p class="chip">Vidas: <span id="vidas" class="vidas"></span></p>
+        <p class="chip">Pugs: <strong><span id="pugs-encontrados">0</span> / <span id="pugs-total">0</span></strong></p>
       </div>
 
       <p id="mensagem-jogo" class="mensagem-jogo" role="status"></p>

@@ -19,13 +19,13 @@ const SOLUCOES_POR_RODADA = 12; // quantas soluções erradas são atacadas por 
 
 /* Configuração por dificuldade.
    "tamanho" é, ao mesmo tempo, o número de linhas, de colunas, de pugs e de
-   regiões coloridas (um pug por cor). Quanto menor o tabuleiro, menos pugs.
-   "vidas" é quantos palpites errados o jogador pode dar antes de perder.
-   Os valores de cada nível ainda NÃO foram definidos: por enquanto os três
-   são iguais (10 x 10, 10 pugs, 3 vidas). Quando definirmos, é só mudar aqui. */
+   regiões coloridas (um pug por cor): Fácil = 5 x 5 com 5 pugs, Médio = 8 x 8
+   com 8 pugs, Difícil = 10 x 10 com 10 pugs. O tamanho máximo é
+   NUMERO_DE_CORES. "vidas" é quantos palpites errados o jogador pode dar
+   antes de perder. Tudo o que muda de um nível para outro fica aqui. */
 const CONFIG_DIFICULDADES = {
-  facil:   { nome: "Fácil",   tamanho: 10, vidas: 3 },
-  medio:   { nome: "Médio",   tamanho: 10, vidas: 3 },
+  facil:   { nome: "Fácil",   tamanho: 5,  vidas: 3 },
+  medio:   { nome: "Médio",   tamanho: 8,  vidas: 3 },
   dificil: { nome: "Difícil", tamanho: 10, vidas: 3 }
 };
 
@@ -50,6 +50,8 @@ const textoDificuldadeAtual = document.getElementById("dificuldade-atual");
 const tabuleiro = document.getElementById("tabuleiro");
 const elementoVidas = document.getElementById("vidas");
 const mensagemJogo = document.getElementById("mensagem-jogo");
+const contadorPugs = document.getElementById("pugs-encontrados");
+const totalPugs = document.getElementById("pugs-total");
 
 /* ---------- Estado do jogo ---------- */
 
@@ -102,6 +104,12 @@ btnMenu.addEventListener("click", function () {
    ========================================================== */
 
 botoesDificuldade.forEach(function (botao) {
+  // Escreve no botão o tamanho do tabuleiro e o número de pugs do nível,
+  // lendo CONFIG_DIFICULDADES (assim o texto nunca fica diferente do jogo).
+  const config = CONFIG_DIFICULDADES[botao.dataset.dificuldade];
+  botao.querySelector(".detalhe").textContent =
+    config.tamanho + "×" + config.tamanho + " · " + config.tamanho + " pugs";
+
   botao.addEventListener("click", function () {
     botoesDificuldade.forEach(function (b) {
       b.classList.remove("selecionada");
@@ -580,11 +588,14 @@ function criarTabuleiro() {
       casa.dataset.linha = linha;
       casa.dataset.coluna = coluna;
 
-      if (linha > 0 && mapaRegioes[linha - 1][coluna] !== regiao) {
-        casa.classList.add("limite-cima");
+      // Cada casa desenha só o seu lado de cima e o da esquerda: linha grossa
+      // ("limite") se o vizinho é de outra região, linha fina ("divisa") se é da
+      // mesma. A primeira linha e a primeira coluna não precisam (o tabuleiro tem borda).
+      if (linha > 0) {
+        casa.classList.add(mapaRegioes[linha - 1][coluna] !== regiao ? "limite-cima" : "divisa-cima");
       }
-      if (coluna > 0 && mapaRegioes[linha][coluna - 1] !== regiao) {
-        casa.classList.add("limite-esquerda");
+      if (coluna > 0) {
+        casa.classList.add(mapaRegioes[linha][coluna - 1] !== regiao ? "limite-esquerda" : "divisa-esquerda");
       }
 
       linhaDeCasas.push(casa);
@@ -612,6 +623,11 @@ function atualizarVidas() {
   elementoVidas.textContent = "♥".repeat(vidas) + "♡".repeat(vidasIniciais - vidas);
 }
 
+function atualizarContadorDePugs() {
+  contadorPugs.textContent = pugsEncontrados;
+  totalPugs.textContent = tamanhoAtual;
+}
+
 /* ==========================================================
    Interação com o tabuleiro
    ========================================================== */
@@ -622,9 +638,10 @@ function temPug(linha, coluna) {
   });
 }
 
-function terminarJogo(mensagem) {
+function terminarJogo(mensagem, venceu) {
   jogoTerminado = true;
   mensagemJogo.textContent = mensagem;
+  mensagemJogo.className = "mensagem-jogo " + (venceu ? "vitoria" : "derrota");
   tabuleiro.classList.add("encerrado");
 }
 
@@ -651,11 +668,12 @@ function tratarCliqueNaCasa(linha, coluna) {
 
   desenharCasa(linha, coluna);
   atualizarVidas();
+  atualizarContadorDePugs();
 
   if (pugsEncontrados === tamanhoAtual) {
-    terminarJogo("Você encontrou todos os pugs! 🎉");
+    terminarJogo("Você encontrou todos os pugs! 🎉", true);
   } else if (vidas === 0) {
-    terminarJogo("Acabaram as suas vidas. Fim de jogo.");
+    terminarJogo("Acabaram as suas vidas. Fim de jogo.", false);
   }
 }
 
@@ -689,10 +707,12 @@ function iniciarJogo() {
   estadoCasas = criarMatriz(tamanhoAtual, "vazia");
 
   mensagemJogo.textContent = "";
+  mensagemJogo.className = "mensagem-jogo";
   tabuleiro.classList.remove("encerrado");
 
   criarTabuleiro();
   atualizarVidas();
+  atualizarContadorDePugs();
 
   if (MODO_DEPURACAO) {
     console.table(posicoesPugs);

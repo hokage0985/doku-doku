@@ -1,6 +1,30 @@
 /* ==========================================================
    Doku-Doku — estilos
+   Visual de "adesivo de pug": fundo lilás com patinhas e ossinhos,
+   contornos marrom-escuro e tons de pug.
    ========================================================== */
+
+:root {
+  /* Cores */
+  --lilas: #bdb8f0;
+  --marrom: #4a1a2c;
+  --marrom-suave: #7a4a5c;
+  --creme: #fde7c8;
+  --creme-claro: #fff3df;
+  --rosa: #ff9db6;
+  --rosa-forte: #e0456f;
+  --branco: #ffffff;
+  --linha-fina: rgba(74, 26, 44, 0.22); /* divisa entre casas da mesma região */
+  --contorno: 3px;
+
+  /* Imagens em SVG, embutidas aqui para o projeto continuar com só 3 arquivos.
+     --img-pug: o pug desenhado   --img-x / --img-x-errada: as marcas das casas
+     --img-padrao: o fundo com patinhas e ossinhos */
+  --img-pug: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg stroke-linejoin='round' stroke-linecap='round'%3E%3Cg fill='%23fff' stroke='%23fff' stroke-width='7'%3E%3Cpath d='M17 14C6 13 1 28 5 41C11 44 18 36 21 25Z'/%3E%3Cpath d='M47 14C58 13 63 28 59 41C53 44 46 36 43 25Z'/%3E%3Cpath d='M32 11C46 11 54 21 54 34C54 47 45 56 32 56C19 56 10 47 10 34C10 21 18 11 32 11Z'/%3E%3C/g%3E%3Cg fill='%23b97d68' stroke='%234a1a2c' stroke-width='2.6'%3E%3Cpath d='M17 14C6 13 1 28 5 41C11 44 18 36 21 25Z'/%3E%3Cpath d='M47 14C58 13 63 28 59 41C53 44 46 36 43 25Z'/%3E%3C/g%3E%3Cpath d='M32 11C46 11 54 21 54 34C54 47 45 56 32 56C19 56 10 47 10 34C10 21 18 11 32 11Z' fill='%23f7cb9c' stroke='%234a1a2c' stroke-width='2.6'/%3E%3Cellipse cx='32' cy='44' rx='14' ry='10' fill='%23cf9473'/%3E%3Cpath d='M26 19Q32 22 38 19M28.5 24Q32 26 35.5 24' fill='none' stroke='%23c58d6c' stroke-width='2.2'/%3E%3Ccircle cx='23' cy='33' r='4.6' fill='%233b1424'/%3E%3Ccircle cx='41' cy='33' r='4.6' fill='%233b1424'/%3E%3Ccircle cx='24.6' cy='31.4' r='1.5' fill='%23fff'/%3E%3Ccircle cx='42.6' cy='31.4' r='1.5' fill='%23fff'/%3E%3Cellipse cx='32' cy='41' rx='4.4' ry='3.2' fill='%233b1424'/%3E%3Cpath d='M32 44V47M25.5 47.5Q32 53 38.5 47.5' fill='none' stroke='%234a1a2c' stroke-width='2.2'/%3E%3C/g%3E%3C/svg%3E");
+  --img-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6L18 18M18 6L6 18' fill='none' stroke='%234a1a2c' stroke-width='3.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  --img-x-errada: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke-linecap='round'%3E%3Cpath d='M6 6L18 18M18 6L6 18' stroke='%23fff' stroke-width='7'/%3E%3Cpath d='M6 6L18 18M18 6L6 18' stroke='%23d6334a' stroke-width='4'/%3E%3C/svg%3E");
+  --img-padrao: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%23c9c5f5' stroke='%23a8a2e4' stroke-width='3.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cg transform='translate(66 66) rotate(-14) scale(1.25)'%3E%3Cpath d='M0 -1C-9 -1 -15 7 -12 13C-10 17 -5 15 0 15C5 15 10 17 12 13C15 7 9 -1 0 -1Z'/%3E%3Cellipse cx='-16' cy='-5' rx='4.2' ry='5.8' transform='rotate(-25 -16 -5)'/%3E%3Cellipse cx='-6' cy='-14' rx='4.4' ry='6'/%3E%3Cellipse cx='6' cy='-14' rx='4.4' ry='6'/%3E%3Cellipse cx='16' cy='-5' rx='4.2' ry='5.8' transform='rotate(25 16 -5)'/%3E%3C/g%3E%3Cg transform='translate(196 60) rotate(30) scale(1.3)'%3E%3Cpath d='M14 -4A5.1 5.1 0 1 1 20 0A5.1 5.1 0 1 1 14 4H-14A5.1 5.1 0 1 1 -20 0A5.1 5.1 0 1 1 -14 -4Z'/%3E%3C/g%3E%3Cg transform='translate(64 196) rotate(-28) scale(1.3)'%3E%3Cpath d='M14 -4A5.1 5.1 0 1 1 20 0A5.1 5.1 0 1 1 14 4H-14A5.1 5.1 0 1 1 -20 0A5.1 5.1 0 1 1 -14 -4Z'/%3E%3C/g%3E%3Cg transform='translate(196 196) rotate(12) scale(1.25)'%3E%3Cpath d='M0 -1C-9 -1 -15 7 -12 13C-10 17 -5 15 0 15C5 15 10 17 12 13C15 7 9 -1 0 -1Z'/%3E%3Cellipse cx='-16' cy='-5' rx='4.2' ry='5.8' transform='rotate(-25 -16 -5)'/%3E%3Cellipse cx='-6' cy='-14' rx='4.4' ry='6'/%3E%3Cellipse cx='6' cy='-14' rx='4.4' ry='6'/%3E%3Cellipse cx='16' cy='-5' rx='4.2' ry='5.8' transform='rotate(25 16 -5)'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
 * {
   box-sizing: border-box;
@@ -10,8 +34,10 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #f4f7fb;
-  color: #1f2d3d;
+  color: var(--marrom);
+  background-color: var(--lilas);
+  background-image: var(--img-padrao);
+  background-size: 260px 260px;
 }
 
 main {
@@ -19,18 +45,18 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 20px 16px;
 }
 
 /* ---------- Telas ---------- */
 
 .tela {
   width: 100%;
-  max-width: 640px;
+  max-width: 660px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   text-align: center;
 }
 
@@ -41,9 +67,17 @@ main {
   display: none !important;
 }
 
+/* Título em letras brancas com contorno marrom, como num adesivo */
 h1 {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: clamp(2rem, 9vw, 3.2rem);
+  letter-spacing: 1px;
+  color: var(--branco);
+  text-shadow:
+    -3px -3px 0 var(--marrom), 0 -3px 0 var(--marrom), 3px -3px 0 var(--marrom),
+    -3px 0 0 var(--marrom), 3px 0 0 var(--marrom),
+    -3px 3px 0 var(--marrom), 0 3px 0 var(--marrom), 3px 3px 0 var(--marrom),
+    0 7px 0 var(--marrom);
 }
 
 h2 {
@@ -51,68 +85,130 @@ h2 {
   font-size: 1.1rem;
 }
 
+.logo-pug {
+  width: 130px;
+  height: 130px;
+  background: var(--img-pug) center / contain no-repeat;
+  filter: drop-shadow(0 6px 0 rgba(74, 26, 44, 0.25));
+}
+
+.logo-pug.pequeno {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 3px 0 rgba(74, 26, 44, 0.25));
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 /* ---------- Botões ---------- */
 
 button {
-  padding: 10px 20px;
+  padding: 10px 22px;
   font-family: inherit;
   font-size: 1rem;
-  color: #1f2d3d;
-  background-color: #dbe7f5;
-  border: 2px solid transparent;
-  border-radius: 8px;
+  font-weight: 700;
+  color: var(--marrom);
+  background-color: var(--creme);
+  border: var(--contorno) solid var(--marrom);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--marrom);
   cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
 }
 
 button:hover {
-  background-color: #c4d8ef;
+  background-color: var(--creme-claro);
+}
+
+button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--marrom);
 }
 
 button:focus-visible {
-  outline: 3px solid #3d7fd9;
-  outline-offset: 2px;
+  outline: 3px solid var(--branco);
+  outline-offset: 3px;
+}
+
+/* Botão de destaque (Começar) */
+.botao-principal {
+  padding: 12px 38px;
+  font-size: 1.2rem;
+  background-color: var(--rosa);
+}
+
+.botao-principal:hover {
+  background-color: #ffb3c7;
+}
+
+/* ---------- Cartões brancos (dificuldade e instruções) ---------- */
+
+.cartao {
+  width: 100%;
+  padding: 16px 20px;
+  background-color: var(--branco);
+  border: var(--contorno) solid var(--marrom);
+  border-radius: 18px;
+  box-shadow: 0 6px 0 rgba(74, 26, 44, 0.3);
 }
 
 /* ---------- Dificuldade ---------- */
-
-.area-dificuldade {
-  width: 100%;
-}
 
 .opcoes-dificuldade {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* Dificuldade escolhida */
-.dificuldade.selecionada {
-  color: #ffffff;
-  background-color: #3d7fd9;
-  border-color: #2a5fa8;
+.dificuldade {
+  min-width: 118px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px;
 }
 
+.dificuldade .detalhe {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--marrom-suave);
+}
+
+/* Dificuldade escolhida: rosa, "afundada" e com um ✓ */
+.dificuldade.selecionada,
 .dificuldade.selecionada:hover {
-  background-color: #3573c8;
+  background-color: var(--rosa);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--marrom);
+}
+
+.dificuldade.selecionada .detalhe {
+  color: var(--marrom);
+}
+
+.dificuldade.selecionada .nome::before {
+  content: "✓ ";
 }
 
 .aviso {
-  min-height: 1.4em;
+  min-height: 1.3em;
   margin: 8px 0 0;
-  color: #c0392b;
+  color: #c0263f;
   font-weight: bold;
 }
 
 /* ---------- Instruções ---------- */
 
 .texto-instrucoes {
-  width: 100%;
-  padding: 16px 20px;
   text-align: left;
   line-height: 1.5;
-  background-color: #ffffff;
-  border-radius: 8px;
 }
 
 .texto-instrucoes h2:not(:first-child) {
@@ -134,40 +230,72 @@ button:focus-visible {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 4px 28px;
+  gap: 8px 10px;
 }
 
-.painel-jogo p {
+/* Pílulas do painel: dificuldade, vidas e pugs encontrados */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
+  padding: 6px 14px;
+  font-weight: 700;
+  background-color: var(--branco);
+  border: var(--contorno) solid var(--marrom);
+  border-radius: 999px;
 }
 
 .vidas {
-  color: #d6336c;
-  font-size: 1.3rem;
-  letter-spacing: 3px;
+  color: var(--rosa-forte);
+  font-size: 1.2rem;
+  letter-spacing: 2px;
 }
 
-/* Mensagem de vitória ou de fim de jogo (reserva a altura para o tabuleiro não pular) */
+/* Mensagem de vitória ou de fim de jogo.
+   Vazia, ela fica invisível mas continua ocupando espaço (o tabuleiro não pula). */
 .mensagem-jogo {
-  min-height: 1.5em;
+  min-height: 2.8rem;
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: bold;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background-color: var(--branco);
+  border: var(--contorno) solid var(--marrom);
+  border-radius: 999px;
+}
+
+.mensagem-jogo:empty {
+  visibility: hidden;
+}
+
+.mensagem-jogo.vitoria {
+  background-color: #c9f2b5;
+}
+
+.mensagem-jogo.derrota {
+  background-color: #ffd0d6;
 }
 
 /* Tabuleiro: o número de linhas e colunas (--n) é definido pelo JavaScript.
-   Ocupa até 600px e encolhe em telas menores. */
+   Cada casa tem no máximo --celula de lado; em telas estreitas o tabuleiro
+   encolhe para caber. O anel branco ao redor lembra a borda de um adesivo. */
 #tabuleiro {
   --n: 10;
+  --celula: 64px;
   display: grid;
   grid-template-columns: repeat(var(--n), 1fr);
   grid-template-rows: repeat(var(--n), 1fr);
   gap: 0;
-  width: min(600px, 100%);
+  width: min(calc(var(--n) * var(--celula)), 100%);
   aspect-ratio: 1 / 1;
-  border: 3px solid #1f2d3d;
-  border-radius: 6px;
+  border: 4px solid var(--marrom);
+  border-radius: 16px;
   overflow: hidden;
+  background-color: var(--branco);
+  box-shadow: 0 0 0 8px var(--branco), 0 12px 0 8px rgba(74, 26, 44, 0.25);
 
   /* Cliques rápidos seguidos não selecionam texto nem dão zoom no celular */
   user-select: none;
@@ -182,48 +310,68 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(31, 45, 61, 0.25);
-  font-size: calc(min(600px, 88vw) / var(--n) * 0.55);
-  line-height: 1;
   cursor: pointer;
 }
 
-/* Divisa entre regiões: linha mais grossa quando o vizinho de cima / da esquerda é de outra cor */
+/* Divisas: cada casa desenha só o seu lado de cima e o da esquerda.
+   Linha fina entre casas da mesma região, linha grossa entre regiões diferentes. */
+.casa.divisa-cima {
+  border-top: 1px solid var(--linha-fina);
+}
+
+.casa.divisa-esquerda {
+  border-left: 1px solid var(--linha-fina);
+}
+
 .casa.limite-cima {
-  border-top: 3px solid #1f2d3d;
+  border-top: 3px solid var(--marrom);
 }
 
 .casa.limite-esquerda {
-  border-left: 3px solid #1f2d3d;
+  border-left: 3px solid var(--marrom);
 }
 
 /* O efeito de hover só vale onde existe mouse; no celular ele "gruda" após o toque */
 @media (hover: hover) {
   .casa:hover {
-    filter: brightness(0.9);
+    filter: brightness(0.92);
   }
 }
 
 /* ---------- Estados de uma casa ---------- */
 
+.casa.marcada::after,
+.casa.pug::after,
+.casa.errada::after {
+  content: "";
+  display: block;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
 /* Marcada pelo jogador com X (1º clique) */
 .casa.marcada::after {
-  content: "✕";
-  color: #1f2d3d;
-  font-weight: bold;
-  opacity: 0.55;
+  width: 52%;
+  height: 52%;
+  background-image: var(--img-x);
+  opacity: 0.8;
 }
 
 /* Palpite certo: o pug aparece e a casa trava */
 .casa.pug::after {
-  content: "🐶";
+  width: 86%;
+  height: 86%;
+  background-image: var(--img-pug);
+  animation: aparecer 0.35s ease-out;
 }
 
 /* Palpite errado: X vermelho e a casa trava */
 .casa.errada::after {
-  content: "✕";
-  color: #c0392b;
-  font-weight: bold;
+  width: 58%;
+  height: 58%;
+  background-image: var(--img-x-errada);
+  animation: tremer 0.3s;
 }
 
 .casa.pug,
@@ -240,41 +388,93 @@ button:focus-visible {
   }
 }
 
-/* ---------- Cores das regiões ---------- */
+@keyframes aparecer {
+  from { transform: scale(0.2) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(4deg); opacity: 1; }
+  to   { transform: scale(1) rotate(0); opacity: 1; }
+}
 
-.regiao-0  { background-color: #f4a6a6; }
-.regiao-1  { background-color: #ffd59e; }
-.regiao-2  { background-color: #fff3a3; }
-.regiao-3  { background-color: #b8e6a1; }
-.regiao-4  { background-color: #8fd9c9; }
-.regiao-5  { background-color: #9ec9ff; }
-.regiao-6  { background-color: #b7b4f5; }
-.regiao-7  { background-color: #e2a8ef; }
-.regiao-8  { background-color: #d9c2a6; }
-.regiao-9  { background-color: #c4c9d1; }
-.regiao-10 { background-color: #ffb3d1; }
+@keyframes tremer {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .casa::after {
+    animation: none !important;
+  }
+}
+
+/* ---------- Cores das regiões ----------
+   Cada partida usa as primeiras N cores: 5 no Fácil, 8 no Médio, 10 no Difícil. */
+
+.regiao-0  { background-color: #ff9aa2; }
+.regiao-1  { background-color: #ffc48a; }
+.regiao-2  { background-color: #fff09a; }
+.regiao-3  { background-color: #b5e48c; }
+.regiao-4  { background-color: #8fe0d0; }
+.regiao-5  { background-color: #8ec5ff; }
+.regiao-6  { background-color: #b9a6f5; }
+.regiao-7  { background-color: #f5a8e0; }
+.regiao-8  { background-color: #d8b894; }
+.regiao-9  { background-color: #c9ced6; }
+.regiao-10 { background-color: #ffd1a1; }
 .regiao-11 { background-color: #d4e68a; }
 
 .botoes-jogo {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 /* ---------- Telas pequenas ---------- */
 
 @media (max-width: 480px) {
   main {
-    padding: 10px;
+    padding: 14px 12px;
   }
 
-  h1 {
-    font-size: 1.8rem;
+  .tela {
+    gap: 14px;
+  }
+
+  .cartao {
+    padding: 14px 12px;
+  }
+
+  /* As três dificuldades continuam lado a lado no celular */
+  .opcoes-dificuldade {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .dificuldade {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 6px;
+  }
+
+  .dificuldade .detalhe {
+    font-size: 0.68rem;
+  }
+
+  .logo-pug {
+    width: 104px;
+    height: 104px;
+  }
+
+  .logo-pug.pequeno {
+    width: 48px;
+    height: 48px;
   }
 
   #tabuleiro {
-    border-width: 2px;
+    border-width: 3px;
+    border-radius: 12px;
+    box-shadow: 0 0 0 6px var(--branco), 0 10px 0 6px rgba(74, 26, 44, 0.25);
   }
 
   .casa.limite-cima {
