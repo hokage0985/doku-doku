@@ -11,31 +11,19 @@ const NUMERO_DE_CORES = 12;
 const MODO_DEPURACAO = false;
 
 // Limites do gerador (só mexa se a geração começar a falhar).
-// (Valores medidos no tabuleiro 10 x 10: cerca de 0,1 s por partida; ajustes
-// demais por tentativa deixam a geração mais lenta, não mais confiável.)
 const TENTATIVAS_POR_TABULEIRO = 200;
 const AJUSTES_POR_TENTATIVA = 40;
-const SOLUCOES_POR_RODADA = 12; // quantas soluções erradas são atacadas por rodada de ajustes
+const SOLUCOES_POR_RODADA = 12;
 
 // Dois cliques na mesma casa com no máximo este intervalo (em milissegundos)
-// formam um clique duplo, que é o palpite. Em cliques mais lentos que isso,
-// cada clique apenas põe ou tira o X. Aumente se estiver difícil acertar o
-// clique duplo; diminua se estiver palpitando sem querer.
 const TEMPO_CLIQUE_DUPLO = 350;
 
-/* Configuração por dificuldade.
-   "tamanho" é, ao mesmo tempo, o número de linhas, de colunas, de pugs e de
-   regiões coloridas (um pug por cor): Fácil = 5 x 5 com 5 pugs, Médio = 8 x 8
-   com 8 pugs, Difícil = 10 x 10 com 10 pugs. O tamanho máximo é
-   NUMERO_DE_CORES. "vidas" é quantos palpites errados o jogador pode dar
-   antes de perder. Tudo o que muda de um nível para outro fica aqui. */
 const CONFIG_DIFICULDADES = {
   facil:   { nome: "Fácil",   tamanho: 5,  vidas: 3 },
   medio:   { nome: "Médio",   tamanho: 8,  vidas: 3 },
   dificil: { nome: "Difícil", tamanho: 10, vidas: 3 }
 };
 
-// Os quatro vizinhos de uma casa (cima, baixo, esquerda, direita).
 const DIRECOES = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
 /* ---------- Elementos da página ---------- */
@@ -63,28 +51,25 @@ const totalPugs = document.getElementById("pugs-total");
 
 let dificuldadeSelecionada = null;
 
-let tamanhoAtual = 0;      // linhas = colunas = pugs = regiões da partida atual
+let tamanhoAtual = 0;
 let vidasIniciais = 0;
 let vidas = 0;
 let pugsEncontrados = 0;
 let jogoTerminado = false;
 
-// Posições secretas dos pugs: lista de { linha, coluna }, índices a partir de 0.
-// Ficam apenas aqui, em memória: nada no HTML revela onde eles estão.
 let posicoesPugs = [];
-
-// Número da região (cor) de cada casa: mapaRegioes[linha][coluna].
 let mapaRegioes = [];
-
-// O que o jogador fez em cada casa: "vazia", "marcada" (X), "pug" ou "errada".
 let estadoCasas = [];
-
-// O último clique dado ({ linha, coluna, quando }), guardado para o caso de o
-// próximo clique formar um clique duplo. É null quando não há clique pendente.
 let ultimoClique = null;
-
-// Os elementos HTML das casas: casasDOM[linha][coluna].
 let casasDOM = [];
+
+// Variáveis de controle para o arraste do mouse
+let mousePressionado = false;
+let arrastando = false;
+let estadoAlvoArraste = null;
+let pontoInicialX = 0;
+let pontoInicialY = 0;
+let ignorarProximoClique = false;
 
 /* ==========================================================
    Controle de telas
@@ -114,8 +99,6 @@ btnMenu.addEventListener("click", function () {
    ========================================================== */
 
 botoesDificuldade.forEach(function (botao) {
-  // Escreve no botão o tamanho do tabuleiro e o número de pugs do nível,
-  // lendo CONFIG_DIFICULDADES (assim o texto nunca fica diferente do jogo).
   const config = CONFIG_DIFICULDADES[botao.dataset.dificuldade];
   botao.querySelector(".detalhe").textContent =
     config.tamanho + "×" + config.tamanho + " · " + config.tamanho + " pugs";
@@ -148,7 +131,6 @@ btnNovoJogo.addEventListener("click", iniciarJogo);
    Utilitários
    ========================================================== */
 
-// Embaralha uma lista (Fisher-Yates) sem alterar a original.
 function embaralhar(lista) {
   const copia = lista.slice();
   for (let i = copia.length - 1; i > 0; i--) {
@@ -160,7 +142,6 @@ function embaralhar(lista) {
   return copia;
 }
 
-// Cria uma matriz n x n preenchida com o valor dado.
 function criarMatriz(n, valor) {
   const matriz = [];
   for (let i = 0; i < n; i++) {
@@ -174,33 +155,25 @@ function dentroDoTabuleiro(linha, coluna, n) {
 }
 
 /* ==========================================================
-   Gerador dos pugs (backtracking com ordem aleatória)
+   Gerador dos pugs e regiões (Backtracking)
    ========================================================== */
 
-// Duas casas são adjacentes quando a diferença de linha e a de coluna
-// são ambas menores ou iguais a 1 (inclui as diagonais).
 function saoAdjacentes(a, b) {
   return Math.abs(a.linha - b.linha) <= 1 && Math.abs(a.coluna - b.coluna) <= 1;
 }
 
-// Diz se um pug pode ser colocado em (linha, coluna), dado o que já foi colocado.
 function posicaoValida(linha, coluna, colocados) {
   const candidato = { linha: linha, coluna: coluna };
 
   for (let i = 0; i < colocados.length; i++) {
     const outro = colocados[i];
-    if (outro.linha === linha) return false;           // mesma linha
-    if (outro.coluna === coluna) return false;         // mesma coluna
-    if (saoAdjacentes(candidato, outro)) return false; // vizinha ou diagonal
+    if (outro.linha === linha) return false;
+    if (outro.coluna === coluna) return false;
+    if (saoAdjacentes(candidato, outro)) return false;
   }
   return true;
 }
 
-// Gera as posições dos n pugs de um tabuleiro n x n.
-// Como não pode haver dois pugs na mesma linha e são n linhas e n pugs,
-// cada linha recebe exatamente um pug. O algoritmo percorre as linhas de cima
-// para baixo e, em cada uma, testa as colunas em ordem aleatória. Se uma
-// escolha impede completar o tabuleiro, ele retrocede e tenta outra coluna.
 function gerarPugs(n) {
   const todasAsColunas = [];
   for (let c = 0; c < n; c++) {
@@ -210,7 +183,7 @@ function gerarPugs(n) {
   const colocados = [];
 
   function colocarNaLinha(linha) {
-    if (linha === n) return true; // todos os pugs foram colocados
+    if (linha === n) return true;
 
     const colunasEmOrdemAleatoria = embaralhar(todasAsColunas);
 
@@ -222,7 +195,7 @@ function gerarPugs(n) {
 
         if (colocarNaLinha(linha + 1)) return true;
 
-        colocados.pop(); // retrocede e tenta outra coluna
+        colocados.pop();
       }
     }
     return false;
@@ -235,7 +208,6 @@ function gerarPugs(n) {
   return colocados;
 }
 
-// Confere uma configuração do zero, sem depender do gerador.
 function configuracaoValida(pugs, n) {
   if (pugs.length !== n) return false;
 
@@ -253,16 +225,6 @@ function configuracaoValida(pugs, n) {
   return true;
 }
 
-/* ==========================================================
-   Regiões coloridas
-   Cada cor é um bloco de casas ligadas (lado com lado) e tem exatamente
-   um pug. Além disso, o tabuleiro precisa ter UMA ÚNICA solução; do
-   contrário, um palpite que segue a lógica poderia ser punido.
-   ========================================================== */
-
-// Faz crescer n regiões a partir das sementes (a região k nasce na casa
-// sementes[k]). A cada passo, sorteia uma região e anexa a ela uma casa livre
-// vizinha, então toda região continua ligada.
 function crescerRegioes(sementes, n) {
   const mapa = criarMatriz(n, -1);
   sementes.forEach(function (casa, k) {
@@ -272,7 +234,6 @@ function crescerRegioes(sementes, n) {
   let faltam = n * n - sementes.length;
 
   while (faltam > 0) {
-    // Casas livres encostadas em cada região.
     const fronteiras = sementes.map(function () { return []; });
 
     for (let l = 0; l < n; l++) {
@@ -308,8 +269,6 @@ function crescerRegioes(sementes, n) {
   return mapa;
 }
 
-// Diz se a região continua inteira e ligada se a casa (ignorarLinha,
-// ignorarColuna) deixar de pertencer a ela. Use -1 para não ignorar nenhuma.
 function regiaoContinuaLigada(mapa, n, regiao, ignorarLinha, ignorarColuna) {
   let inicio = null;
   let total = 0;
@@ -348,14 +307,7 @@ function regiaoContinuaLigada(mapa, n, regiao, ignorarLinha, ignorarColuna) {
   return alcancadas === total;
 }
 
-// Procura soluções do tabuleiro: n pugs, um por linha, coluna e região, sem
-// pugs vizinhos. Para assim que achar "limite" soluções. Cada solução é uma
-// lista com a coluna do pug de cada linha.
-// A busca é por região (backtracking): em cada passo escolhe a região sem pug
-// que tem MENOS casas livres e tenta um pug em cada uma. Se alguma região
-// ficar sem casa livre, desiste do ramo na hora. Isso poda quase tudo.
 function encontrarSolucoes(mapa, n, limite) {
-  // Casas de cada região.
   const casasDaRegiao = [];
   for (let r = 0; r < n; r++) casasDaRegiao.push([]);
   for (let l = 0; l < n; l++) {
@@ -364,8 +316,6 @@ function encontrarSolucoes(mapa, n, limite) {
     }
   }
 
-  // bloqueios[l][c] = quantos pugs já colocados proíbem aquela casa
-  // (mesma linha, mesma coluna ou vizinha/diagonal).
   const bloqueios = criarMatriz(n, 0);
   const regiaoComPug = new Array(n).fill(false);
   const solucao = new Array(n);
@@ -373,10 +323,9 @@ function encontrarSolucoes(mapa, n, limite) {
 
   function alterarBloqueios(linha, coluna, delta) {
     for (let i = 0; i < n; i++) {
-      bloqueios[linha][i] += delta;                  // a linha inteira
-      if (i !== linha) bloqueios[i][coluna] += delta; // a coluna inteira
+      bloqueios[linha][i] += delta;
+      if (i !== linha) bloqueios[i][coluna] += delta;
     }
-    // As quatro diagonais (os vizinhos laterais já estão na linha e na coluna).
     for (let dl = -1; dl <= 1; dl += 2) {
       for (let dc = -1; dc <= 1; dc += 2) {
         if (dentroDoTabuleiro(linha + dl, coluna + dc, n)) {
@@ -403,7 +352,7 @@ function encontrarSolucoes(mapa, n, limite) {
         if (bloqueios[casa.linha][casa.coluna] === 0) livres.push(casa);
       });
 
-      if (livres.length === 0) return false; // essa região não tem mais onde pôr o pug
+      if (livres.length === 0) return false;
 
       if (melhorLista === null || livres.length < melhorLista.length) {
         melhorRegiao = r;
@@ -435,8 +384,6 @@ function encontrarSolucoes(mapa, n, limite) {
   return solucoes;
 }
 
-// Diz se uma solução (coluna do pug de cada linha) ainda vale no mapa, isto é,
-// se seus pugs caem em regiões todas diferentes.
 function solucaoValeNoMapa(solucao, mapa, n) {
   const vistas = new Set();
   for (let linha = 0; linha < n; linha++) {
@@ -445,13 +392,6 @@ function solucaoValeNoMapa(solucao, mapa, n) {
   return vistas.size === n;
 }
 
-// Ajusta as regiões até a única solução ser a dos pugs sorteados.
-// A cada rodada, busca algumas soluções diferentes da verdadeira. Para cada
-// uma, pega uma casa dela (que não seja pug de verdade) e a passa para uma
-// região vizinha. Assim aquela solução passa a ter dois pugs na mesma região
-// e deixa de valer, enquanto a verdadeira continua valendo. A casa só muda se a
-// região de onde ela sai continuar ligada. Devolve false se travar; nesse caso
-// o chamador recomeça com outros pugs.
 function tornarSolucaoUnica(mapa, pugs, n) {
   const ehPugDeVerdade = new Set();
   pugs.forEach(function (p) {
@@ -467,14 +407,12 @@ function tornarSolucaoUnica(mapa, pugs, n) {
     const outras = solucoes.filter(function (s) { return !ehAVerdadeira(s); });
 
     if (outras.length === 0) {
-      // Só deve restar a verdadeira; se nem ela apareceu, algo está errado.
       return solucoes.length === 1;
     }
 
     let avancou = false;
 
     outras.forEach(function (outra) {
-      // Um ajuste desta mesma rodada pode já ter eliminado essa solução.
       if (!solucaoValeNoMapa(outra, mapa, n)) {
         avancou = true;
         return;
@@ -512,14 +450,12 @@ function tornarSolucaoUnica(mapa, pugs, n) {
       if (moveu) avancou = true;
     });
 
-    if (!avancou) return false; // travou
+    if (!avancou) return false;
   }
 
   return false;
 }
 
-// Confere as regiões do zero: n regiões, todas existentes, ligadas e com
-// exatamente um pug cada.
 function regioesValidas(mapa, pugs, n) {
   if (n > NUMERO_DE_CORES) return false;
 
@@ -546,7 +482,6 @@ function regioesValidas(mapa, pugs, n) {
   return true;
 }
 
-// Gera um tabuleiro completo: posições dos pugs + mapa de regiões.
 function gerarTabuleiro(n) {
   if (n > NUMERO_DE_CORES) {
     throw new Error("Não há cores suficientes para um tabuleiro " + n + " x " + n + ".");
@@ -554,9 +489,6 @@ function gerarTabuleiro(n) {
 
   for (let tentativa = 0; tentativa < TENTATIVAS_POR_TABULEIRO; tentativa++) {
     const pugs = gerarPugs(n);
-
-    // A ordem das regiões é sorteada, para o número/cor de uma região não
-    // revelar em que linha está o pug dela.
     const mapa = crescerRegioes(embaralhar(pugs), n);
 
     if (
@@ -575,10 +507,6 @@ function gerarTabuleiro(n) {
    Tabuleiro (HTML)
    ========================================================== */
 
-// Cria as casas. Cada uma recebe id, coordenadas (linha, coluna), a classe da
-// cor da sua região e, quando o vizinho de cima/da esquerda é de outra região,
-// uma classe para desenhar a divisa. Como o tabuleiro é esvaziado antes,
-// chamar esta função de novo nunca duplica casas.
 function criarTabuleiro() {
   tabuleiro.replaceChildren();
   tabuleiro.style.setProperty("--n", tamanhoAtual);
@@ -598,9 +526,6 @@ function criarTabuleiro() {
       casa.dataset.linha = linha;
       casa.dataset.coluna = coluna;
 
-      // Cada casa desenha só o seu lado de cima e o da esquerda: linha grossa
-      // ("limite") se o vizinho é de outra região, linha fina ("divisa") se é da
-      // mesma. A primeira linha e a primeira coluna não precisam (o tabuleiro tem borda).
       if (linha > 0) {
         casa.classList.add(mapaRegioes[linha - 1][coluna] !== regiao ? "limite-cima" : "divisa-cima");
       }
@@ -618,7 +543,6 @@ function criarTabuleiro() {
   tabuleiro.appendChild(fragmento);
 }
 
-// Atualiza a aparência de uma casa conforme o seu estado.
 function desenharCasa(linha, coluna) {
   const casa = casasDOM[linha][coluna];
   casa.classList.remove("marcada", "pug", "errada");
@@ -639,7 +563,7 @@ function atualizarContadorDePugs() {
 }
 
 /* ==========================================================
-   Interação com o tabuleiro
+   Interação com o tabuleiro (Cliques e Arraste)
    ========================================================== */
 
 function temPug(linha, coluna) {
@@ -655,14 +579,10 @@ function terminarJogo(mensagem, venceu) {
   tabuleiro.classList.add("encerrado");
 }
 
-// A hora atual em milissegundos. Fica numa função própria para os testes
-// poderem controlar o relógio.
 function agora() {
   return Date.now();
 }
 
-// Diz se este clique é o segundo de um clique duplo rápido na mesma casa.
-// Um clique duplo "gasta" os dois cliques: o clique seguinte recomeça a contagem.
 function ehCliqueDuplo(linha, coluna) {
   const momento = agora();
 
@@ -676,17 +596,12 @@ function ehCliqueDuplo(linha, coluna) {
   return duplo;
 }
 
-// Um clique simples: põe o X ("acho que aqui não tem pug") ou, se a casa já
-// tem X, tira o X.
 function alternarX(linha, coluna) {
   const marcada = estadoCasas[linha][coluna] === "marcada";
   estadoCasas[linha][coluna] = marcada ? "vazia" : "marcada";
   desenharCasa(linha, coluna);
 }
 
-// Um clique duplo rápido: é um palpite de que ali TEM pug.
-//   - Acertou: o pug aparece e a casa fica travada.
-//   - Errou: perde uma vida e a casa fica travada com um X vermelho.
 function palpitar(linha, coluna) {
   if (temPug(linha, coluna)) {
     estadoCasas[linha][coluna] = "pug";
@@ -707,8 +622,6 @@ function palpitar(linha, coluna) {
   }
 }
 
-// Clique simples: põe ou tira o X. Clique duplo rápido: palpite.
-// Casas já resolvidas (pug ou errada) não respondem mais.
 function tratarCliqueNaCasa(linha, coluna) {
   if (jogoTerminado) return;
 
@@ -722,9 +635,71 @@ function tratarCliqueNaCasa(linha, coluna) {
   }
 }
 
-// Um único ouvinte no tabuleiro inteiro (em vez de um por casa). Ele é
-// registrado uma vez só, então "Novo Jogo" nunca acumula eventos repetidos.
+// Eventos de mouse para clique e arraste
+tabuleiro.addEventListener("mousedown", function (evento) {
+  if (jogoTerminado) return;
+  const casa = evento.target.closest(".casa");
+  if (!casa) return;
+
+  mousePressionado = true;
+  arrastando = false;
+  pontoInicialX = evento.clientX;
+  pontoInicialY = evento.clientY;
+
+  const linha = Number(casa.dataset.linha);
+  const coluna = Number(casa.dataset.coluna);
+  const estado = estadoCasas[linha][coluna];
+
+  if (estado === "pug" || estado === "errada") {
+    mousePressionado = false;
+    return;
+  }
+
+  // Define se o arraste vai marcar (X) ou desmarcar com base na primeira casa
+  estadoAlvoArraste = (estado === "vazia") ? "marcada" : "vazia";
+});
+
+window.addEventListener("mousemove", function (evento) {
+  if (!mousePressionado) return;
+
+  // Se o mouse se mover mais de 5 pixels, consideramos que é um arraste
+  const dx = Math.abs(evento.clientX - pontoInicialX);
+  const dy = Math.abs(evento.clientY - pontoInicialY);
+  if (dx > 5 || dy > 5) {
+    arrastando = true;
+  }
+
+  if (arrastando) {
+    const elementoSobMouse = document.elementFromPoint(evento.clientX, evento.clientY);
+    if (!elementoSobMouse) return;
+    const casa = elementoSobMouse.closest(".casa");
+    if (!casa || !tabuleiro.contains(casa)) return;
+
+    const linha = Number(casa.dataset.linha);
+    const coluna = Number(casa.dataset.coluna);
+    const estado = estadoCasas[linha][coluna];
+
+    // Aplica o estado alvo nas casas percorridas pelo mouse
+    if (estado !== "pug" && estado !== "errada" && estado !== estadoAlvoArraste) {
+      estadoCasas[linha][coluna] = estadoAlvoArraste;
+      desenharCasa(linha, coluna);
+    }
+  }
+});
+
+window.addEventListener("mouseup", function () {
+  if (arrastando) {
+    ignorarProximoClique = true;
+  }
+  mousePressionado = false;
+  arrastando = false;
+});
+
 tabuleiro.addEventListener("click", function (evento) {
+  if (ignorarProximoClique) {
+    ignorarProximoClique = false;
+    return;
+  }
   const casa = evento.target.closest(".casa");
   if (!casa) return;
 
