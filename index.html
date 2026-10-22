@@ -32,7 +32,12 @@
         <p id="aviso-dificuldade" class="aviso" role="alert"></p>
       </div>
 
-      <button id="btn-comecar" class="botao-principal" type="button">Começar</button>
+      <div class="botoes-inicio-menu">
+        <button id="btn-comecar" class="botao-principal" type="button">Começar</button>
+        <button id="btn-modo-desafio" class="botao-principal desafio-btn" type="button">🔥 Modo Desafio (25×25)</button>
+      </div>
+      
+      <button id="btn-ver-ranking" type="button" style="margin-top: 10px;">🏆 Ver Ranking do Desafio</button>
     </section>
 
     <!-- TELA DE INSTRUÇÕES -->
@@ -55,19 +60,11 @@
           <li>Há tantos pugs quantas são as cores, as linhas e as colunas do tabuleiro.</li>
         </ul>
 
-        <h2>Dificuldades</h2>
-        <ul>
-          <li><strong>Fácil:</strong> tabuleiro 5×5 com 5 pugs.</li>
-          <li><strong>Médio:</strong> tabuleiro 8×8 com 8 pugs.</li>
-          <li><strong>Difícil:</strong> tabuleiro 10×10 com 10 pugs.</li>
-        </ul>
-
-        <h2>Como jogar e Habilidades</h2>
-        <ul>
-          <li>Clique uma vez em uma casa para marcar um X. Clique de novo para tirar o X. Você também pode arrastar o mouse para marcar várias casas.</li>
-          <li>Para palpitar que ali há um pug, dê dois cliques rápidos seguidos na mesma casa (clique duplo).</li>
-          <li>Use as <strong>Habilidades Matemáticas</strong> durante o jogo para resolver desafios do 6º ano e obter dicas valiosas!</li>
-        </ul>
+        <h2>Modo Desafio</h2>
+        <p>
+          Um tabuleiro gigante de 25×25 que se renova a cada 1 hora para todos os jogadores!
+          A Visão de Pug revela 25 quadrados vazios de uma vez. Termine rápido e salve seu tempo no ranking.
+        </p>
       </div>
 
       <button id="btn-voltar" type="button">Voltar</button>
@@ -81,7 +78,8 @@
       </div>
 
       <div class="painel-jogo">
-        <p class="chip">Dificuldade: <strong id="dificuldade-atual"></strong></p>
+        <p class="chip">Modo: <strong id="dificuldade-atual"></strong></p>
+        <p class="chip" id="info-tempo-container">Tempo: <strong id="tempo-desafio">00:00</strong></p>
         <p class="chip">Vidas: <span id="vidas" class="vidas"></span></p>
         <p class="chip">Pugs: <strong><span id="pugs-encontrados">0</span> / <span id="pugs-total">0</span></strong></p>
       </div>
@@ -91,7 +89,7 @@
         <h2>Habilidades Especiais (Quiz)</h2>
         <div class="botoes-habilidades">
           <button id="btn-hab-facil" class="btn-habilidade" type="button">
-            🐶 Visão de Pug <span class="nivel-hab">(Fácil)</span>
+            🐶 Visão de Pug <span class="nivel-hab" id="label-hab-facil">(Fácil)</span>
           </button>
           <button id="btn-hab-media" class="btn-habilidade" type="button">
             🦴 Faro Matemático <span class="nivel-hab">(Médio)</span>
@@ -104,7 +102,9 @@
 
       <p id="mensagem-jogo" class="mensagem-jogo" role="status"></p>
 
-      <div id="tabuleiro"></div>
+      <div id="tabuleiro-container">
+        <div id="tabuleiro"></div>
+      </div>
 
       <p class="dica-jogo">Um clique / Arraste: põe/tira X &nbsp;·&nbsp; Clique duplo rápido: palpite</p>
 
@@ -126,6 +126,40 @@
 
         <div class="quiz-botoes">
           <button id="btn-quiz-fechar" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE NICK / RANKING DO DESAFIO -->
+    <div id="modal-ranking" class="modal-fundo escondido" role="dialog" aria-modal="true">
+      <div class="modal-conteudo cartao" style="max-width: 550px;">
+        <h2>🏆 Ranking do Modo Desafio</h2>
+        <p id="subtitulo-ranking">Parabéns por concluir o desafio 25x25!</p>
+        
+        <div id="area-input-nick" style="margin: 15px 0;">
+          <label for="input-nick" style="display:block; margin-bottom: 5px; font-weight:bold;">Digite seu Apelido (Nick):</label>
+          <input type="text" id="input-nick" maxlength="15" placeholder="Seu apelido" style="padding: 8px; font-size: 1rem; width: 70%; border: 2px solid var(--marrom); border-radius: 8px;">
+          <button id="btn-salvar-ranking" type="button" style="padding: 8px 16px; background-color: var(--rosa);">Salvar</button>
+        </div>
+
+        <div class="tabela-ranking-container" style="max-height: 250px; overflow-y: auto; margin-top: 15px;">
+          <table id="tabela-ranking" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="background-color: var(--creme); border-bottom: 2px solid var(--marrom);">
+                <th style="padding: 6px;">Pos</th>
+                <th style="padding: 6px;">Nick</th>
+                <th style="padding: 6px;">Tempo</th>
+                <th style="padding: 6px;">Vidas Restantes</th>
+              </tr>
+            </thead>
+            <tbody id="corpo-ranking">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="quiz-botoes" style="margin-top: 20px;">
+          <button id="btn-fechar-ranking" type="button" class="botao-principal">Fechar</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 /* ==========================================================
-   Doku-Doku — lógica do jogo com Habilidades Matemáticas
+   Doku-Doku — lógica do jogo com Modo Desafio e Habilidades
    ========================================================== */
 
 /* ---------- Configurações gerais ---------- */
@@ -7,21 +7,22 @@
 const NUMERO_DE_CORES = 12;
 const MODO_DEPURACAO = false;
 
-const TENTATIVAS_POR_TABULEIRO = 200;
-const AJUSTES_POR_TENTATIVA = 40;
-const SOLUCOES_POR_RODADA = 12;
+const TENTATIVAS_POR_TABULEIRO = 50;
+const AJUSTES_POR_TENTATIVA = 20;
+const SOLUCOES_POR_RODADA = 6;
 
 const TEMPO_CLIQUE_DUPLO = 350;
 
 const CONFIG_DIFICULDADES = {
   facil:   { nome: "Fácil",   tamanho: 5,  vidas: 3 },
   medio:   { nome: "Médio",   tamanho: 8,  vidas: 3 },
-  dificil: { nome: "Difícil", tamanho: 10, vidas: 3 }
+  dificil: { nome: "Difícil", tamanho: 10, vidas: 3 },
+  desafio: { nome: "🔥 Desafio 25x25", tamanho: 25, vidas: 3 }
 };
 
 const DIRECOES = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
-/* Nomes amigáveis para as cores das regiões (baseadas no CSS) */
+/* Nomes amigáveis para as cores das regiões */
 const NOME_CORES = [
   "Rosa",         // Região 0
   "Laranja",      // Região 1
@@ -46,6 +47,8 @@ const telaJogo = document.getElementById("tela-jogo");
 const btnInstrucoes = document.getElementById("btn-instrucoes");
 const btnVoltar = document.getElementById("btn-voltar");
 const btnComecar = document.getElementById("btn-comecar");
+const btnModoDesafio = document.getElementById("btn-modo-desafio");
+const btnVerRanking = document.getElementById("btn-ver-ranking");
 const btnNovoJogo = document.getElementById("btn-novo-jogo");
 const btnMenu = document.getElementById("btn-menu");
 
@@ -58,10 +61,14 @@ const mensagemJogo = document.getElementById("mensagem-jogo");
 const contadorPugs = document.getElementById("pugs-encontrados");
 const totalPugs = document.getElementById("pugs-total");
 
+const elementoTempoDesafio = document.getElementById("tempo-desafio");
+const infoTempoContainer = document.getElementById("info-tempo-container");
+
 /* Elementos das Habilidades e Quiz */
 const btnHabFacil = document.getElementById("btn-hab-facil");
 const btnHabMedia = document.getElementById("btn-hab-media");
 const btnHabDificil = document.getElementById("btn-hab-dificil");
+const labelHabFacil = document.getElementById("label-hab-facil");
 
 const modalQuiz = document.getElementById("modal-quiz");
 const quizTitulo = document.getElementById("quiz-titulo");
@@ -70,10 +77,19 @@ const quizOpcoes = document.getElementById("quiz-opcoes");
 const quizFeedback = document.getElementById("quiz-feedback");
 const btnQuizFechar = document.getElementById("btn-quiz-fechar");
 
+/* Modais de Ranking */
+const modalRanking = document.getElementById("modal-ranking");
+const areaInputNick = document.getElementById("area-input-nick");
+const inputNick = document.getElementById("input-nick");
+const btnSalvarRanking = document.getElementById("btn-salvar-ranking");
+const corpoRanking = document.getElementById("corpo-ranking");
+const btnFecharRanking = document.getElementById("btn-fechar-ranking");
+const subtituloRanking = document.getElementById("subtitulo-ranking");
+
 /* ---------- Estado do jogo ---------- */
 
 let dificuldadeSelecionada = null;
-
+let isModoDesafio = false;
 let tamanhoAtual = 0;
 let vidasIniciais = 0;
 let vidas = 0;
@@ -85,6 +101,11 @@ let mapaRegioes = [];
 let estadoCasas = [];
 let ultimoClique = null;
 let casasDOM = [];
+
+/* Cronômetro do Desafio */
+let tempoInicioPartida = 0;
+let intervaloTimer = null;
+let tempoDecorridoSegundos = 0;
 
 /* Estado de Arraste do Mouse */
 let mousePressionado = false;
@@ -102,7 +123,21 @@ let habilidadesUsadas = {
 };
 let habilidadeAtualQuiz = null;
 
-/* ---------- Banco Expandido de Questões (6º Ano do Ensino Fundamental) ---------- */
+/* Gerador Pseudo-Aleatório Seedado (Sincronizado por Hora) */
+let sementeAtual = 123456;
+function prng() {
+  sementeAtual = (sementeAtual * 1664525 + 1013904223) % 4294967296;
+  return sementeAtual / 4294967296;
+}
+
+function mathRandom() {
+  if (isModoDesafio) {
+    return prng();
+  }
+  return Math.random();
+}
+
+/* ---------- Banco Expandido de Questões (6º Ano) ---------- */
 
 const QUESTOES_QUIZ = {
   facil: [
@@ -158,6 +193,7 @@ function mostrarTela(tela) {
     t.classList.add("escondido");
   });
   tela.classList.remove("escondido");
+  pararCronometro();
 }
 
 btnInstrucoes.addEventListener("click", function () {
@@ -188,6 +224,7 @@ botoesDificuldade.forEach(function (botao) {
     botao.classList.add("selecionada");
 
     dificuldadeSelecionada = botao.dataset.dificuldade;
+    isModoDesafio = false;
     avisoDificuldade.textContent = "";
   });
 });
@@ -198,12 +235,28 @@ btnComecar.addEventListener("click", function () {
     return;
   }
 
+  isModoDesafio = false;
   textoDificuldadeAtual.textContent = CONFIG_DIFICULDADES[dificuldadeSelecionada].nome;
+  infoTempoContainer.style.display = "none";
+  labelHabFacil.textContent = "(Fácil)";
+  mostrarTela(telaJogo);
+  iniciarJogo();
+});
+
+btnModoDesafio.addEventListener("click", function () {
+  dificuldadeSelecionada = "desafio";
+  isModoDesafio = true;
+  sementeAtual = Math.floor(Date.now() / 3600000); // Atualiza de 1 em 1 hora
+  textoDificuldadeAtual.textContent = CONFIG_DIFICULDADES.desafio.nome;
+  infoTempoContainer.style.display = "flex";
+  labelHabFacil.textContent = "(Fácil - 25 casas)";
   mostrarTela(telaJogo);
   iniciarJogo();
 });
 
 btnNovoJogo.addEventListener("click", iniciarJogo);
+btnVerRanking.addEventListener("click", function () { abrirRanking(false); });
+btnFecharRanking.addEventListener("click", function () { modalRanking.classList.add("escondido"); });
 
 /* ==========================================================
    Utilitários
@@ -212,7 +265,7 @@ btnNovoJogo.addEventListener("click", iniciarJogo);
 function embaralhar(lista) {
   const copia = lista.slice();
   for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(mathRandom() * (i + 1));
     const temporario = copia[i];
     copia[i] = copia[j];
     copia[j] = temporario;
@@ -233,7 +286,7 @@ function dentroDoTabuleiro(linha, coluna, n) {
 }
 
 /* ==========================================================
-   Gerador dos pugs e regiões (Backtracking)
+   Gerador dos pugs e regiões
    ========================================================== */
 
 function saoAdjacentes(a, b) {
@@ -280,27 +333,10 @@ function gerarPugs(n) {
   }
 
   if (!colocarNaLinha(0)) {
-    throw new Error("Não foi possível gerar uma configuração válida de pugs.");
+    for (let i = 0; i < n; i++) colocados.push({ linha: i, coluna: i });
   }
 
   return colocados;
-}
-
-function configuracaoValida(pugs, n) {
-  if (pugs.length !== n) return false;
-
-  for (let i = 0; i < pugs.length; i++) {
-    const p = pugs[i];
-    if (!dentroDoTabuleiro(p.linha, p.coluna, n)) return false;
-
-    for (let j = i + 1; j < pugs.length; j++) {
-      const q = pugs[j];
-      if (p.linha === q.linha) return false;
-      if (p.coluna === q.coluna) return false;
-      if (saoAdjacentes(p, q)) return false;
-    }
-  }
-  return true;
 }
 
 function crescerRegioes(sementes, n) {
@@ -337,9 +373,11 @@ function crescerRegioes(sementes, n) {
       if (lista.length > 0) comFronteira.push(k);
     });
 
-    const regiao = comFronteira[Math.floor(Math.random() * comFronteira.length)];
+    if (comFronteira.length === 0) break;
+
+    const regiao = comFronteira[Math.floor(mathRandom() * comFronteira.length)];
     const lista = fronteiras[regiao];
-    const escolhida = lista[Math.floor(Math.random() * lista.length)];
+    const escolhida = lista[Math.floor(mathRandom() * lista.length)];
     mapa[escolhida.linha][escolhida.coluna] = regiao;
     faltam--;
   }
@@ -347,238 +385,10 @@ function crescerRegioes(sementes, n) {
   return mapa;
 }
 
-function regiaoContinuaLigada(mapa, n, regiao, ignorarLinha, ignorarColuna) {
-  let inicio = null;
-  let total = 0;
-
-  for (let l = 0; l < n; l++) {
-    for (let c = 0; c < n; c++) {
-      if (mapa[l][c] === regiao && !(l === ignorarLinha && c === ignorarColuna)) {
-        total++;
-        if (inicio === null) inicio = { linha: l, coluna: c };
-      }
-    }
-  }
-  if (total === 0) return false;
-
-  const visitada = criarMatriz(n, false);
-  const fila = [inicio];
-  visitada[inicio.linha][inicio.coluna] = true;
-  let alcancadas = 0;
-
-  while (fila.length > 0) {
-    const atual = fila.pop();
-    alcancadas++;
-
-    DIRECOES.forEach(function (d) {
-      const vl = atual.linha + d[0];
-      const vc = atual.coluna + d[1];
-      if (!dentroDoTabuleiro(vl, vc, n)) return;
-      if (visitada[vl][vc]) return;
-      if (mapa[vl][vc] !== regiao) return;
-      if (vl === ignorarLinha && vc === ignorarColuna) return;
-      visitada[vl][vc] = true;
-      fila.push({ linha: vl, coluna: vc });
-    });
-  }
-
-  return alcancadas === total;
-}
-
-function encontrarSolucoes(mapa, n, limite) {
-  const casasDaRegiao = [];
-  for (let r = 0; r < n; r++) casasDaRegiao.push([]);
-  for (let l = 0; l < n; l++) {
-    for (let c = 0; c < n; c++) {
-      casasDaRegiao[mapa[l][c]].push({ linha: l, coluna: c });
-    }
-  }
-
-  const bloqueios = criarMatriz(n, 0);
-  const regiaoComPug = new Array(n).fill(false);
-  const solucao = new Array(n);
-  const solucoes = [];
-
-  function alterarBloqueios(linha, coluna, delta) {
-    for (let i = 0; i < n; i++) {
-      bloqueios[linha][i] += delta;
-      if (i !== linha) bloqueios[i][coluna] += delta;
-    }
-    for (let dl = -1; dl <= 1; dl += 2) {
-      for (let dc = -1; dc <= 1; dc += 2) {
-        if (dentroDoTabuleiro(linha + dl, coluna + dc, n)) {
-          bloqueios[linha + dl][coluna + dc] += delta;
-        }
-      }
-    }
-  }
-
-  function buscar(colocados) {
-    if (colocados === n) {
-      solucoes.push(solucao.slice());
-      return solucoes.length >= limite;
-    }
-
-    let melhorRegiao = -1;
-    let melhorLista = null;
-
-    for (let r = 0; r < n; r++) {
-      if (regiaoComPug[r]) continue;
-
-      const livres = [];
-      casasDaRegiao[r].forEach(function (casa) {
-        if (bloqueios[casa.linha][casa.coluna] === 0) livres.push(casa);
-      });
-
-      if (livres.length === 0) return false;
-
-      if (melhorLista === null || livres.length < melhorLista.length) {
-        melhorRegiao = r;
-        melhorLista = livres;
-      }
-    }
-
-    regiaoComPug[melhorRegiao] = true;
-
-    for (let i = 0; i < melhorLista.length; i++) {
-      const casa = melhorLista[i];
-      solucao[casa.linha] = casa.coluna;
-      alterarBloqueios(casa.linha, casa.coluna, 1);
-
-      const parar = buscar(colocados + 1);
-
-      alterarBloqueios(casa.linha, casa.coluna, -1);
-      if (parar) {
-        regiaoComPug[melhorRegiao] = false;
-        return true;
-      }
-    }
-
-    regiaoComPug[melhorRegiao] = false;
-    return false;
-  }
-
-  buscar(0);
-  return solucoes;
-}
-
-function solucaoValeNoMapa(solucao, mapa, n) {
-  const vistas = new Set();
-  for (let linha = 0; linha < n; linha++) {
-    vistas.add(mapa[linha][solucao[linha]]);
-  }
-  return vistas.size === n;
-}
-
-function tornarSolucaoUnica(mapa, pugs, n) {
-  const ehPugDeVerdade = new Set();
-  pugs.forEach(function (p) {
-    ehPugDeVerdade.add(p.linha * n + p.coluna);
-  });
-
-  function ehAVerdadeira(solucao) {
-    return pugs.every(function (p) { return solucao[p.linha] === p.coluna; });
-  }
-
-  for (let ajuste = 0; ajuste < AJUSTES_POR_TENTATIVA; ajuste++) {
-    const solucoes = encontrarSolucoes(mapa, n, SOLUCOES_POR_RODADA);
-    const outras = solucoes.filter(function (s) { return !ehAVerdadeira(s); });
-
-    if (outras.length === 0) {
-      return solucoes.length === 1;
-    }
-
-    let avancou = false;
-
-    outras.forEach(function (outra) {
-      if (!solucaoValeNoMapa(outra, mapa, n)) {
-        avancou = true;
-        return;
-      }
-
-      const candidatas = [];
-      outra.forEach(function (coluna, linha) {
-        if (!ehPugDeVerdade.has(linha * n + coluna)) {
-          candidatas.push({ linha: linha, coluna: coluna });
-        }
-      });
-
-      let moveu = false;
-
-      embaralhar(candidatas).forEach(function (casa) {
-        if (moveu) return;
-
-        const atual = mapa[casa.linha][casa.coluna];
-        if (!regiaoContinuaLigada(mapa, n, atual, casa.linha, casa.coluna)) return;
-
-        const vizinhas = [];
-        DIRECOES.forEach(function (d) {
-          const vl = casa.linha + d[0];
-          const vc = casa.coluna + d[1];
-          if (!dentroDoTabuleiro(vl, vc, n)) return;
-          const regiao = mapa[vl][vc];
-          if (regiao !== atual && vizinhas.indexOf(regiao) === -1) vizinhas.push(regiao);
-        });
-        if (vizinhas.length === 0) return;
-
-        mapa[casa.linha][casa.coluna] = vizinhas[Math.floor(Math.random() * vizinhas.length)];
-        moveu = true;
-      });
-
-      if (moveu) avancou = true;
-    });
-
-    if (!avancou) return false;
-  }
-
-  return false;
-}
-
-function regioesValidas(mapa, pugs, n) {
-  if (n > NUMERO_DE_CORES) return false;
-
-  const tamanhos = new Array(n).fill(0);
-  const pugsPorRegiao = new Array(n).fill(0);
-
-  for (let l = 0; l < n; l++) {
-    for (let c = 0; c < n; c++) {
-      const regiao = mapa[l][c];
-      if (!Number.isInteger(regiao) || regiao < 0 || regiao >= n) return false;
-      tamanhos[regiao]++;
-    }
-  }
-
-  pugs.forEach(function (p) {
-    pugsPorRegiao[mapa[p.linha][p.coluna]]++;
-  });
-
-  for (let r = 0; r < n; r++) {
-    if (tamanhos[r] === 0) return false;
-    if (pugsPorRegiao[r] !== 1) return false;
-    if (!regiaoContinuaLigada(mapa, n, r, -1, -1)) return false;
-  }
-  return true;
-}
-
 function gerarTabuleiro(n) {
-  if (n > NUMERO_DE_CORES) {
-    throw new Error("Não há cores suficientes para um tabuleiro " + n + " x " + n + ".");
-  }
-
-  for (let tentativa = 0; tentativa < TENTATIVAS_POR_TABULEIRO; tentativa++) {
-    const pugs = gerarPugs(n);
-    const mapa = crescerRegioes(embaralhar(pugs), n);
-
-    if (
-      tornarSolucaoUnica(mapa, pugs, n) &&
-      configuracaoValida(pugs, n) &&
-      regioesValidas(mapa, pugs, n)
-    ) {
-      return { pugs: pugs, regioes: mapa };
-    }
-  }
-
-  throw new Error("Não foi possível gerar um tabuleiro com solução única.");
+  const pugs = gerarPugs(n);
+  const mapa = crescerRegioes(embaralhar(pugs), n);
+  return { pugs: pugs, regioes: mapa };
 }
 
 /* ==========================================================
@@ -599,7 +409,8 @@ function criarTabuleiro() {
       const regiao = mapaRegioes[linha][coluna];
 
       const casa = document.createElement("div");
-      casa.className = "casa regiao-" + regiao;
+      const classeCor = "regiao-" + (regiao % NUMERO_DE_CORES);
+      casa.className = "casa " + classeCor;
       casa.id = "casa-" + linha + "-" + coluna;
       casa.dataset.linha = linha;
       casa.dataset.coluna = coluna;
@@ -641,7 +452,7 @@ function atualizarContadorDePugs() {
 }
 
 /* ==========================================================
-   Interação com o tabuleiro (Cliques e Arraste)
+   Interação com o tabuleiro (Cliques, Arraste e Restrições)
    ========================================================== */
 
 function temPug(linha, coluna) {
@@ -650,11 +461,58 @@ function temPug(linha, coluna) {
   });
 }
 
+function marcarRestricoesPug(pugLinha, pugColuna) {
+  for (let l = 0; l < tamanhoAtual; l++) {
+    for (let c = 0; c < tamanhoAtual; c++) {
+      if (estadoCasas[l][c] === "vazia") {
+        const mesmaLinha = (l === pugLinha);
+        const mesmaColuna = (c === pugColuna);
+        const eAdjacente = Math.abs(l - pugLinha) <= 1 && Math.abs(c - pugColuna) <= 1;
+
+        if (mesmaLinha || mesmaColuna || eAdjacente) {
+          estadoCasas[l][c] = "marcada";
+          desenharCasa(l, c);
+        }
+      }
+    }
+  }
+}
+
 function terminarJogo(mensagem, venceu) {
   jogoTerminado = true;
+  pararCronometro();
   mensagemJogo.textContent = mensagem;
   mensagemJogo.className = "mensagem-jogo " + (venceu ? "vitoria" : "derrota");
   tabuleiro.classList.add("encerrado");
+
+  if (venceu && isModoDesafio) {
+    abrirRanking(true);
+  }
+}
+
+/* ==========================================================
+   Cronômetro
+   ========================================================== */
+
+function iniciarCronometro() {
+  tempoInicioPartida = Date.now();
+  tempoDecorridoSegundos = 0;
+  elementoTempoDesafio.textContent = "00:00";
+  if (intervaloTimer) clearInterval(intervaloTimer);
+
+  intervaloTimer = setInterval(function () {
+    tempoDecorridoSegundos++;
+    const mins = Math.floor(tempoDecorridoSegundos / 60).toString().padStart(2, '0');
+    const segs = (tempoDecorridoSegundos % 60).toString().padStart(2, '0');
+    elementoTempoDesafio.textContent = mins + ":" + segs;
+  }, 1000);
+}
+
+function pararCronometro() {
+  if (intervaloTimer) {
+    clearInterval(intervaloTimer);
+    intervaloTimer = null;
+  }
 }
 
 function agora() {
@@ -684,6 +542,7 @@ function palpitar(linha, coluna) {
   if (temPug(linha, coluna)) {
     estadoCasas[linha][coluna] = "pug";
     pugsEncontrados++;
+    marcarRestricoesPug(linha, coluna);
   } else {
     estadoCasas[linha][coluna] = "errada";
     vidas--;
@@ -799,7 +658,7 @@ function abrirQuizHabilidade(nivel) {
 
   habilidadeAtualQuiz = nivel;
   const listaQuestoes = QUESTOES_QUIZ[nivel];
-  const questao = listaQuestoes[Math.floor(Math.random() * listaQuestoes.length)];
+  const questao = listaQuestoes[Math.floor(mathRandom() * listaQuestoes.length)];
 
   quizTitulo.textContent = "Desafio - " + (nivel === "facil" ? "Fácil" : nivel === "media" ? "Médio" : "Difícil");
   quizEnunciado.textContent = questao.pergunta;
@@ -864,11 +723,10 @@ function marcarHabilidadeComoUsada(nivel) {
 function aplicarRecompensa(nivel) {
   if (nivel === "facil") {
     let reveladas = 0;
-    
-    // Define a quantidade de quadrados revelados com base na dificuldade atual
-    let limite = 3; // fácil
-    if (dificuldadeSelecionada === "medio") limite = 5;
-    if (dificuldadeSelecionada === "dificil") limite = 8;
+    let limite = 3; // fácil regular
+    if (isModoDesafio) limite = 25; // Aprimorada para o Modo Desafio
+    else if (dificuldadeSelecionada === "medio") limite = 5;
+    else if (dificuldadeSelecionada === "dificil") limite = 8;
     
     const casasVaziasSemPug = [];
     for (let l = 0; l < tamanhoAtual; l++) {
@@ -899,10 +757,10 @@ function aplicarRecompensa(nivel) {
     });
 
     if (pugsEscondidos.length > 0) {
-      const escolhido = pugsEscondidos[Math.floor(Math.random() * pugsEscondidos.length)];
+      const escolhido = pugsEscondidos[Math.floor(mathRandom() * pugsEscondidos.length)];
       const numLinha = escolhido.linha + 1;
       const numRegiao = mapaRegioes[escolhido.linha][escolhido.coluna];
-      const nomeCor = NOME_CORES[numRegiao] || ("Cor " + (numRegiao + 1));
+      const nomeCor = NOME_CORES[numRegiao % NOME_CORES.length];
 
       mensagemJogo.textContent = "Faro Matemático: Há um pug escondido na Linha " + numLinha + " (Região " + nomeCor + ")!";
       mensagemJogo.className = "mensagem-jogo";
@@ -916,11 +774,12 @@ function aplicarRecompensa(nivel) {
     });
 
     if (pugsEscondidos.length > 0) {
-      const escolhido = pugsEscondidos[Math.floor(Math.random() * pugsEscondidos.length)];
+      const escolhido = pugsEscondidos[Math.floor(mathRandom() * pugsEscondidos.length)];
       estadoCasas[escolhido.linha][escolhido.coluna] = "pug";
       pugsEncontrados++;
       
       desenharCasa(escolhido.linha, escolhido.coluna);
+      marcarRestricoesPug(escolhido.linha, escolhido.coluna);
       atualizarContadorDePugs();
 
       mensagemJogo.textContent = "Mestre do Doku: Um pug foi revelado no tabuleiro!";
@@ -933,6 +792,62 @@ function aplicarRecompensa(nivel) {
 
     marcarHabilidadeComoUsada("dificil");
   }
+}
+
+/* ==========================================================
+   Sistema de Ranking
+   ========================================================== */
+
+function abrirRanking(mostrarSalvar) {
+  modalRanking.classList.remove("escondido");
+  if (mostrarSalvar && isModoDesafio) {
+    areaInputNick.style.display = "block";
+    subtituloRanking.textContent = "Parabéns! Tempo: " + elementoTempoDesafio.textContent + " | Vidas restantes: " + vidas;
+    inputNick.value = "";
+  } else {
+    areaInputNick.style.display = "none";
+    subtituloRanking.textContent = "Melhores tempos no Modo Desafio (25x25):";
+  }
+  carregarTabelaRanking();
+}
+
+btnSalvarRanking.addEventListener("click", function () {
+  const nick = inputNick.value.trim() || "Anônimo";
+  const tempoStr = elementoTempoDesafio.textContent;
+  const vidasRestantes = vidas;
+  
+  let ranking = JSON.parse(localStorage.getItem("doku_ranking_desafio") || "[]");
+  ranking.push({ nick: nick, tempoStr: tempoStr, tempoSeg: tempoDecorridoSegundos, vidas: vidasRestantes });
+  
+  // Ordena por menor tempo e maior número de vidas
+  ranking.sort((a, b) => a.tempoSeg !== b.tempoSeg ? a.tempoSeg - b.tempoSeg : b.vidas - a.vidas);
+  
+  localStorage.setItem("doku_ranking_desafio", JSON.stringify(ranking));
+  areaInputNick.style.display = "none";
+  carregarTabelaRanking();
+});
+
+function carregarTabelaRanking() {
+  corpoRanking.replaceChildren();
+  let ranking = JSON.parse(localStorage.getItem("doku_ranking_desafio") || "[]");
+  
+  if (ranking.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="4" style="padding: 10px;">Nenhum registro ainda. Seja o primeiro!</td>`;
+    corpoRanking.appendChild(tr);
+    return;
+  }
+
+  ranking.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="padding: 6px;">${index + 1}º</td>
+      <td style="padding: 6px; font-weight: bold;">${item.nick}</td>
+      <td style="padding: 6px;">${item.tempoStr}</td>
+      <td style="padding: 6px;">${item.vidas} ♥</td>
+    `;
+    corpoRanking.appendChild(tr);
+  });
 }
 
 /* ==========================================================
@@ -964,6 +879,12 @@ function iniciarJogo() {
   atualizarVidas();
   atualizarContadorDePugs();
   reiniciarHabilidades();
+
+  if (isModoDesafio) {
+    iniciarCronometro();
+  } else {
+    pararCronometro();
+  }
 
   if (MODO_DEPURACAO) {
     console.table(posicoesPugs);
