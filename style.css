@@ -14,12 +14,9 @@
   --rosa: #ff9db6;
   --rosa-forte: #e0456f;
   --branco: #ffffff;
-  --linha-fina: rgba(74, 26, 44, 0.22); /* divisa entre casas da mesma região */
+  --linha-fina: rgba(74, 26, 44, 0.22);
   --contorno: 3px;
 
-  /* Imagens em SVG, embutidas aqui para o projeto continuar com só 3 arquivos.
-     --img-pug: o pug desenhado   --img-x / --img-x-errada: as marcas das casas
-     --img-padrao: o fundo com patinhas e ossinhos */
   --img-pug: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg stroke-linejoin='round' stroke-linecap='round'%3E%3Cg fill='%23fff' stroke='%23fff' stroke-width='7'%3E%3Cpath d='M17 14C6 13 1 28 5 41C11 44 18 36 21 25Z'/%3E%3Cpath d='M47 14C58 13 63 28 59 41C53 44 46 36 43 25Z'/%3E%3Cpath d='M32 11C46 11 54 21 54 34C54 47 45 56 32 56C19 56 10 47 10 34C10 21 18 11 32 11Z'/%3E%3C/g%3E%3Cg fill='%23b97d68' stroke='%234a1a2c' stroke-width='2.6'%3E%3Cpath d='M17 14C6 13 1 28 5 41C11 44 18 36 21 25Z'/%3E%3Cpath d='M47 14C58 13 63 28 59 41C53 44 46 36 43 25Z'/%3E%3C/g%3E%3Cpath d='M32 11C46 11 54 21 54 34C54 47 45 56 32 56C19 56 10 47 10 34C10 21 18 11 32 11Z' fill='%23f7cb9c' stroke='%234a1a2c' stroke-width='2.6'/%3E%3Cellipse cx='32' cy='44' rx='14' ry='10' fill='%23cf9473'/%3E%3Cpath d='M26 19Q32 22 38 19M28.5 24Q32 26 35.5 24' fill='none' stroke='%23c58d6c' stroke-width='2.2'/%3E%3Ccircle cx='23' cy='33' r='4.6' fill='%233b1424'/%3E%3Ccircle cx='41' cy='33' r='4.6' fill='%233b1424'/%3E%3Ccircle cx='24.6' cy='31.4' r='1.5' fill='%23fff'/%3E%3Ccircle cx='42.6' cy='31.4' r='1.5' fill='%23fff'/%3E%3Cellipse cx='32' cy='41' rx='4.4' ry='3.2' fill='%233b1424'/%3E%3Cpath d='M32 44V47M25.5 47.5Q32 53 38.5 47.5' fill='none' stroke='%234a1a2c' stroke-width='2.2'/%3E%3C/g%3E%3C/svg%3E");
   --img-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6L18 18M18 6L6 18' fill='none' stroke='%234a1a2c' stroke-width='3.6' stroke-linecap='round'/%3E%3C/svg%3E");
   --img-x-errada: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke-linecap='round'%3E%3Cpath d='M6 6L18 18M18 6L6 18' stroke='%23fff' stroke-width='7'/%3E%3Cpath d='M6 6L18 18M18 6L6 18' stroke='%23d6334a' stroke-width='4'/%3E%3C/svg%3E");
@@ -60,14 +57,10 @@ main {
   text-align: center;
 }
 
-/* Oculta a tela (ou qualquer elemento) que não está em uso.
-   Fica depois de .tela de propósito, e usa !important para
-   vencer qualquer "display" definido em outras regras. */
 .escondido {
   display: none !important;
 }
 
-/* Título em letras brancas com contorno marrom, como num adesivo */
 h1 {
   margin: 0;
   font-size: clamp(2rem, 9vw, 3.2rem);
@@ -135,7 +128,6 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* Botão de destaque (Começar) */
 .botao-principal {
   padding: 12px 38px;
   font-size: 1.2rem;
@@ -146,7 +138,7 @@ button:focus-visible {
   background-color: #ffb3c7;
 }
 
-/* ---------- Cartões brancos (dificuldade e instruções) ---------- */
+/* ---------- Cartões ---------- */
 
 .cartao {
   width: 100%;
@@ -181,7 +173,6 @@ button:focus-visible {
   color: var(--marrom-suave);
 }
 
-/* Dificuldade escolhida: rosa, "afundada" e com um ✓ */
 .dificuldade.selecionada,
 .dificuldade.selecionada:hover {
   background-color: var(--rosa);
@@ -224,7 +215,7 @@ button:focus-visible {
   padding-left: 22px;
 }
 
-/* ---------- Tela do jogo ---------- */
+/* ---------- Painel do Jogo & Habilidades ---------- */
 
 .painel-jogo {
   display: flex;
@@ -233,7 +224,6 @@ button:focus-visible {
   gap: 8px 10px;
 }
 
-/* Pílulas do painel: dificuldade, vidas e pugs encontrados */
 .chip {
   display: flex;
   align-items: center;
@@ -252,8 +242,45 @@ button:focus-visible {
   letter-spacing: 2px;
 }
 
-/* Mensagem de vitória ou de fim de jogo.
-   Vazia, ela fica invisível mas continua ocupando espaço (o tabuleiro não pula). */
+.painel-habilidades {
+  padding: 12px 16px;
+}
+
+.botoes-habilidades {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-habilidade {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background-color: #e2f0d9;
+}
+
+.btn-habilidade .nivel-hab {
+  font-weight: normal;
+  font-size: 0.75rem;
+  color: var(--marrom-suave);
+}
+
+.btn-habilidade.usado {
+  background-color: #d0d0d0;
+  color: #777;
+  border-color: #999;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-habilidade.usado:hover {
+  background-color: #d0d0d0;
+}
+
+/* Mensagem de Jogo */
+
 .mensagem-jogo {
   min-height: 2.8rem;
   margin: 0;
@@ -279,9 +306,8 @@ button:focus-visible {
   background-color: #ffd0d6;
 }
 
-/* Tabuleiro: o número de linhas e colunas (--n) é definido pelo JavaScript.
-   Cada casa tem no máximo --celula de lado; em telas estreitas o tabuleiro
-   encolhe para caber. O anel branco ao redor lembra a borda de um adesivo. */
+/* Tabuleiro */
+
 #tabuleiro {
   --n: 10;
   --celula: 64px;
@@ -297,7 +323,6 @@ button:focus-visible {
   background-color: var(--branco);
   box-shadow: 0 0 0 8px var(--branco), 0 12px 0 8px rgba(74, 26, 44, 0.25);
 
-  /* Cliques rápidos seguidos não selecionam texto nem dão zoom no celular */
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -313,8 +338,6 @@ button:focus-visible {
   cursor: pointer;
 }
 
-/* Divisas: cada casa desenha só o seu lado de cima e o da esquerda.
-   Linha fina entre casas da mesma região, linha grossa entre regiões diferentes. */
 .casa.divisa-cima {
   border-top: 1px solid var(--linha-fina);
 }
@@ -331,14 +354,13 @@ button:focus-visible {
   border-left: 3px solid var(--marrom);
 }
 
-/* O efeito de hover só vale onde existe mouse; no celular ele "gruda" após o toque */
 @media (hover: hover) {
   .casa:hover {
     filter: brightness(0.92);
   }
 }
 
-/* ---------- Estados de uma casa ---------- */
+/* ---------- Estados e Animações das Casas ---------- */
 
 .casa.marcada::after,
 .casa.pug::after,
@@ -350,28 +372,29 @@ button:focus-visible {
   background-size: contain;
 }
 
-/* Marcada pelo jogador com X (1º clique) */
+/* Marcada com X (Com animação suave de zoom/surgimento) */
 .casa.marcada::after {
   width: 52%;
   height: 52%;
   background-image: var(--img-x);
   opacity: 0.8;
+  animation: aparecer-x 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Palpite certo: o pug aparece e a casa trava */
+/* Palpite certo: o pug aparece com animação e efeito festivo */
 .casa.pug::after {
   width: 86%;
   height: 86%;
   background-image: var(--img-pug);
-  animation: aparecer 0.35s ease-out;
+  animation: aparecer-pug 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Palpite errado: X vermelho e a casa trava */
+/* Palpite errado: X vermelho com animação de tremer */
 .casa.errada::after {
   width: 58%;
   height: 58%;
   background-image: var(--img-x-errada);
-  animation: tremer 0.3s;
+  animation: tremer 0.3s ease-in-out;
 }
 
 .casa.pug,
@@ -388,10 +411,16 @@ button:focus-visible {
   }
 }
 
-@keyframes aparecer {
-  from { transform: scale(0.2) rotate(-12deg); opacity: 0; }
-  60%  { transform: scale(1.15) rotate(4deg); opacity: 1; }
-  to   { transform: scale(1) rotate(0); opacity: 1; }
+/* Keyframes das Animações */
+@keyframes aparecer-x {
+  from { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 0.8; }
+}
+
+@keyframes aparecer-pug {
+  from { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(6deg); opacity: 1; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 @keyframes tremer {
@@ -406,8 +435,7 @@ button:focus-visible {
   }
 }
 
-/* ---------- Cores das regiões ----------
-   Cada partida usa as primeiras N cores: 5 no Fácil, 8 no Médio, 10 no Difícil. */
+/* Cores das regiões */
 
 .regiao-0  { background-color: #ff9aa2; }
 .regiao-1  { background-color: #ffc48a; }
@@ -422,7 +450,6 @@ button:focus-visible {
 .regiao-10 { background-color: #ffd1a1; }
 .regiao-11 { background-color: #d4e68a; }
 
-/* Lembrete dos cliques, logo abaixo do tabuleiro */
 .dica-jogo {
   margin: 14px 0 0;
   padding: 6px 16px;
@@ -441,6 +468,54 @@ button:focus-visible {
   margin-top: 8px;
 }
 
+/* ---------- Modal Quiz ---------- */
+
+.modal-fundo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(74, 26, 44, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-conteudo {
+  max-width: 480px;
+  text-align: center;
+}
+
+.quiz-enunciado {
+  font-size: 1.15rem;
+  font-weight: bold;
+  margin: 16px 0;
+}
+
+.quiz-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-opcao {
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 1rem;
+}
+
+.quiz-botoes {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 /* ---------- Telas pequenas ---------- */
 
 @media (max-width: 480px) {
@@ -456,7 +531,6 @@ button:focus-visible {
     padding: 14px 12px;
   }
 
-  /* As três dificuldades continuam lado a lado no celular */
   .opcoes-dificuldade {
     flex-wrap: nowrap;
     gap: 8px;
