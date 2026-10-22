@@ -1,21 +1,16 @@
 /* ==========================================================
-   Doku-Doku — lógica do jogo
+   Doku-Doku — lógica do jogo com Habilidades Matemáticas
    ========================================================== */
 
 /* ---------- Configurações gerais ---------- */
 
-// Quantas cores de região existem no CSS (.regiao-0, .regiao-1, ...).
 const NUMERO_DE_CORES = 12;
-
-// Deixe true apenas para testar: mostra as posições dos pugs no console.
 const MODO_DEPURACAO = false;
 
-// Limites do gerador (só mexa se a geração começar a falhar).
 const TENTATIVAS_POR_TABULEIRO = 200;
 const AJUSTES_POR_TENTATIVA = 40;
 const SOLUCOES_POR_RODADA = 12;
 
-// Dois cliques na mesma casa com no máximo este intervalo (em milissegundos)
 const TEMPO_CLIQUE_DUPLO = 350;
 
 const CONFIG_DIFICULDADES = {
@@ -25,6 +20,22 @@ const CONFIG_DIFICULDADES = {
 };
 
 const DIRECOES = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+/* Nomes amigáveis para as cores das regiões (baseadas no CSS) */
+const NOME_CORES = [
+  "Rosa",         // Região 0
+  "Laranja",      // Região 1
+  "Amarelo",      // Região 2
+  "Verde",        // Região 3
+  "Turquesa",     // Região 4
+  "Azul",         // Região 5
+  "Lilás",        // Região 6
+  "Rosa Claro",   // Região 7
+  "Bege",         // Região 8
+  "Cinza",        // Região 9
+  "Pêssego",      // Região 10
+  "Verde-Limão"   // Região 11
+];
 
 /* ---------- Elementos da página ---------- */
 
@@ -47,6 +58,18 @@ const mensagemJogo = document.getElementById("mensagem-jogo");
 const contadorPugs = document.getElementById("pugs-encontrados");
 const totalPugs = document.getElementById("pugs-total");
 
+/* Elementos das Habilidades e Quiz */
+const btnHabFacil = document.getElementById("btn-hab-facil");
+const btnHabMedia = document.getElementById("btn-hab-media");
+const btnHabDificil = document.getElementById("btn-hab-dificil");
+
+const modalQuiz = document.getElementById("modal-quiz");
+const quizTitulo = document.getElementById("quiz-titulo");
+const quizEnunciado = document.getElementById("quiz-enunciado");
+const quizOpcoes = document.getElementById("quiz-opcoes");
+const quizFeedback = document.getElementById("quiz-feedback");
+const btnQuizFechar = document.getElementById("btn-quiz-fechar");
+
 /* ---------- Estado do jogo ---------- */
 
 let dificuldadeSelecionada = null;
@@ -63,13 +86,68 @@ let estadoCasas = [];
 let ultimoClique = null;
 let casasDOM = [];
 
-// Variáveis de controle para o arraste do mouse
+/* Estado de Arraste do Mouse */
 let mousePressionado = false;
 let arrastando = false;
 let estadoAlvoArraste = null;
 let pontoInicialX = 0;
 let pontoInicialY = 0;
 let ignorarProximoClique = false;
+
+/* Estado das Habilidades */
+let habilidadesUsadas = {
+  facil: false,
+  media: false,
+  dificil: false
+};
+let habilidadeAtualQuiz = null;
+
+/* ---------- Banco Expandido de Questões (6º Ano do Ensino Fundamental) ---------- */
+
+const QUESTOES_QUIZ = {
+  facil: [
+    { pergunta: "Qual é o resultado de 48 ÷ 6 + 5?", opcoes: ["13", "11", "12", "9"], correta: 0 },
+    { pergunta: "Qual é o valor de 7 × 8 - 12?", opcoes: ["42", "44", "46", "52"], correta: 1 },
+    { pergunta: "Calcule: (15 + 25) ÷ 5", opcoes: ["6", "8", "10", "12"], correta: 1 },
+    { pergunta: "Quanto é 100 - 4 × 15?", opcoes: ["40", "50", "60", "30"], correta: 0 },
+    { pergunta: "Qual é o resultado de 81 ÷ 9 + 14?", opcoes: ["21", "23", "25", "22"], correta: 1 },
+    { pergunta: "Quanto é 125 + 375?", opcoes: ["500", "450", "525", "480"], correta: 0 },
+    { pergunta: "Qual é o triplo de 24?", opcoes: ["68", "72", "76", "80"], correta: 1 },
+    { pergunta: "Quanto é 144 ÷ 12?", opcoes: ["11", "12", "13", "14"], correta: 1 },
+    { pergunta: "Calcule: 50 - 3 × 9", opcoes: ["23", "27", "21", "33"], correta: 0 },
+    { pergunta: "Qual é o resto da divisão de 29 por 4?", opcoes: ["1", "2", "3", "0"], correta: 0 },
+    { pergunta: "Quanto é 6 × (12 - 4)?", opcoes: ["48", "42", "54", "60"], correta: 0 },
+    { pergunta: "Qual é o quádruplo de 15?", opcoes: ["45", "60", "75", "50"], correta: 1 }
+  ],
+  media: [
+    { pergunta: "Qual fração é equivalente a 3/4?", opcoes: ["6/8", "5/6", "4/5", "9/10"], correta: 0 },
+    { pergunta: "Qual número é maior: 3/4 ou 2/3?", opcoes: ["3/4", "2/3", "São iguais", "Não é possível comparar"], correta: 0 },
+    { pergunta: "Qual é a soma de 0,45 + 0,35?", opcoes: ["0,70", "0,80", "0,75", "0,85"], correta: 1 },
+    { pergunta: "Quanto é 1/2 + 1/4?", opcoes: ["2/6", "3/4", "1/6", "2/4"], correta: 1 },
+    { pergunta: "Em forma decimal, como escrevemos a fração 1/5?", opcoes: ["0,5", "0,2", "0,15", "0,25"], correta: 1 },
+    { pergunta: "Qual é o resultado de 2,5 × 4?", opcoes: ["10", "8,5", "9,5", "12"], correta: 0 },
+    { pergunta: "Qual fração simplificada é equivalente a 10/15?", opcoes: ["1/3", "2/3", "3/5", "2/5"], correta: 1 },
+    { pergunta: "Quanto é 1,2 - 0,75?", opcoes: ["0,45", "0,55", "0,35", "0,50"], correta: 0 },
+    { pergunta: "Qual número decimal representa 3/10?", opcoes: ["0,03", "0,3", "3,0", "0,33"], correta: 1 },
+    { pergunta: "Se você comer 2/8 de uma pizza, qual fração simplificada resta?", opcoes: ["3/4", "1/4", "1/2", "5/8"], correta: 0 },
+    { pergunta: "Qual é o resultado de 0,6 + 0,04?", opcoes: ["0,10", "0,64", "0,46", "0,604"], correta: 1 },
+    { pergunta: "Qual é a metade de 0,5?", opcoes: ["0,25", "0,20", "0,15", "0,05"], correta: 0 }
+  ],
+  dificil: [
+    { pergunta: "Um retângulo tem 8 cm de comprimento e 3 cm de largura. Qual é seu perímetro?", opcoes: ["22 cm", "24 cm", "11 cm", "16 cm"], correta: 0 },
+    { pergunta: "Qual é a área de um quadrado cujo lado mede 6 cm?", opcoes: ["24 cm²", "36 cm²", "12 cm²", "18 cm²"], correta: 1 },
+    { pergunta: "Qual é o próximo número da sequência: 2, 5, 10, 17, ...?", opcoes: ["24", "25", "26", "27"], correta: 2 },
+    { pergunta: "Qual é o menor múltiplo comum (MMC) de 4 e 6?", opcoes: ["12", "24", "18", "8"], correta: 0 },
+    { pergunta: "Um terreno retangular tem área de 60 m² e largura de 5 m. Quanto mede o comprimento?", opcoes: ["10 m", "12 m", "15 m", "20 m"], correta: 1 },
+    { pergunta: "Qual é o perímetro de um triângulo equilátero com lado de 9 cm?", opcoes: ["18 cm", "27 cm", "36 cm", "24 cm"], correta: 1 },
+    { pergunta: "Qual é o maior divisor comum (MDC) de 18 e 24?", opcoes: ["3", "6", "12", "4"], correta: 1 },
+    { pergunta: "Qual é a área de um retângulo de 12 cm de base e 5 cm de altura?", opcoes: ["34 cm²", "60 cm²", "30 cm²", "50 cm²"], correta: 1 },
+    { pergunta: "Qual é o próximo termo da sequência: 3, 6, 12, 24, ...?", opcoes: ["36", "48", "30", "50"], correta: 1 },
+    { pergunta: "Um quadrado tem perímetro de 32 cm. Qual é a medida do seu lado?", opcoes: ["6 cm", "8 cm", "16 cm", "4 cm"], correta: 1 },
+    { pergunta: "Qual é o MMC entre 5 e 7?", opcoes: ["35", "12", "1", "70"], correta: 0 },
+    { pergunta: "Um paralelogramo tem base de 10 cm e altura de 4 cm. Qual é a sua área?", opcoes: ["20 cm²", "28 cm²", "40 cm²", "50 cm²"], correta: 2 }
+  ]
+};
 
 /* ==========================================================
    Controle de telas
@@ -655,14 +733,12 @@ tabuleiro.addEventListener("mousedown", function (evento) {
     return;
   }
 
-  // Define se o arraste vai marcar (X) ou desmarcar com base na primeira casa
   estadoAlvoArraste = (estado === "vazia") ? "marcada" : "vazia";
 });
 
 window.addEventListener("mousemove", function (evento) {
   if (!mousePressionado) return;
 
-  // Se o mouse se mover mais de 5 pixels, consideramos que é um arraste
   const dx = Math.abs(evento.clientX - pontoInicialX);
   const dy = Math.abs(evento.clientY - pontoInicialY);
   if (dx > 5 || dy > 5) {
@@ -679,7 +755,6 @@ window.addEventListener("mousemove", function (evento) {
     const coluna = Number(casa.dataset.coluna);
     const estado = estadoCasas[linha][coluna];
 
-    // Aplica o estado alvo nas casas percorridas pelo mouse
     if (estado !== "pug" && estado !== "errada" && estado !== estadoAlvoArraste) {
       estadoCasas[linha][coluna] = estadoAlvoArraste;
       desenharCasa(linha, coluna);
@@ -705,6 +780,160 @@ tabuleiro.addEventListener("click", function (evento) {
 
   tratarCliqueNaCasa(Number(casa.dataset.linha), Number(casa.dataset.coluna));
 });
+
+/* ==========================================================
+   Lógica das Habilidades Matemáticas & Quiz
+   ========================================================== */
+
+function reiniciarHabilidades() {
+  habilidadesUsadas = { facil: false, media: false, dificil: false };
+  
+  [btnHabFacil, btnHabMedia, btnHabDificil].forEach(function (btn) {
+    btn.classList.remove("usado");
+    btn.disabled = false;
+  });
+}
+
+function abrirQuizHabilidade(nivel) {
+  if (jogoTerminado || habilidadesUsadas[nivel]) return;
+
+  habilidadeAtualQuiz = nivel;
+  const listaQuestoes = QUESTOES_QUIZ[nivel];
+  const questao = listaQuestoes[Math.floor(Math.random() * listaQuestoes.length)];
+
+  quizTitulo.textContent = "Desafio - " + (nivel === "facil" ? "Fácil" : nivel === "media" ? "Médio" : "Difícil");
+  quizEnunciado.textContent = questao.pergunta;
+  quizFeedback.textContent = "";
+  quizOpcoes.replaceChildren();
+
+  questao.opcoes.forEach(function (opcaoTexto, idx) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-opcao";
+    btn.textContent = opcaoTexto;
+    btn.addEventListener("click", function () {
+      validarRespostaQuiz(idx, questao.correta);
+    });
+    quizOpcoes.appendChild(btn);
+  });
+
+  modalQuiz.classList.remove("escondido");
+}
+
+function fecharQuiz() {
+  modalQuiz.classList.add("escondido");
+  habilidadeAtualQuiz = null;
+}
+
+btnQuizFechar.addEventListener("click", fecharQuiz);
+
+btnHabFacil.addEventListener("click", function () { abrirQuizHabilidade("facil"); });
+btnHabMedia.addEventListener("click", function () { abrirQuizHabilidade("media"); });
+btnHabDificil.addEventListener("click", function () { abrirQuizHabilidade("dificil"); });
+
+function validarRespostaQuiz(opcaoSelecionada, opcaoCorreta) {
+  if (opcaoSelecionada === opcaoCorreta) {
+    quizFeedback.style.color = "#28a745";
+    quizFeedback.textContent = "Correto! Recompensa concedida.";
+    
+    const nivelConquistado = habilidadeAtualQuiz;
+
+    setTimeout(function () {
+      fecharQuiz();
+      aplicarRecompensa(nivelConquistado);
+    }, 900);
+  } else {
+    quizFeedback.style.color = "#c0263f";
+    quizFeedback.textContent = "Resposta incorreta! Tente novamente mais tarde.";
+    
+    setTimeout(function () {
+      fecharQuiz();
+    }, 1200);
+  }
+}
+
+function marcarHabilidadeComoUsada(nivel) {
+  habilidadesUsadas[nivel] = true;
+  let btn = nivel === "facil" ? btnHabFacil : nivel === "media" ? btnHabMedia : btnHabDificil;
+  btn.classList.add("usado");
+  btn.disabled = true;
+}
+
+/* Recompensas */
+
+function aplicarRecompensa(nivel) {
+  if (nivel === "facil") {
+    let reveladas = 0;
+    
+    // Define a quantidade de quadrados revelados com base na dificuldade atual
+    let limite = 3; // fácil
+    if (dificuldadeSelecionada === "medio") limite = 5;
+    if (dificuldadeSelecionada === "dificil") limite = 8;
+    
+    const casasVaziasSemPug = [];
+    for (let l = 0; l < tamanhoAtual; l++) {
+      for (let c = 0; c < tamanhoAtual; c++) {
+        if (estadoCasas[l][c] === "vazia" && !temPug(l, c)) {
+          casasVaziasSemPug.push({ linha: l, coluna: c });
+        }
+      }
+    }
+
+    const sorteadas = embaralhar(casasVaziasSemPug).slice(0, limite);
+    sorteadas.forEach(function (p) {
+      estadoCasas[p.linha][p.coluna] = "marcada";
+      desenharCasa(p.linha, p.coluna);
+      reveladas++;
+    });
+
+    mensagemJogo.textContent = reveladas > 0 
+      ? "Visão de Pug: " + reveladas + " casas sem pugs foram marcadas com X!" 
+      : "Visão de Pug utilizada!";
+    mensagemJogo.className = "mensagem-jogo";
+
+    marcarHabilidadeComoUsada("facil");
+
+  } else if (nivel === "media") {
+    const pugsEscondidos = posicoesPugs.filter(function (p) {
+      return estadoCasas[p.linha][p.coluna] !== "pug";
+    });
+
+    if (pugsEscondidos.length > 0) {
+      const escolhido = pugsEscondidos[Math.floor(Math.random() * pugsEscondidos.length)];
+      const numLinha = escolhido.linha + 1;
+      const numRegiao = mapaRegioes[escolhido.linha][escolhido.coluna];
+      const nomeCor = NOME_CORES[numRegiao] || ("Cor " + (numRegiao + 1));
+
+      mensagemJogo.textContent = "Faro Matemático: Há um pug escondido na Linha " + numLinha + " (Região " + nomeCor + ")!";
+      mensagemJogo.className = "mensagem-jogo";
+    }
+
+    marcarHabilidadeComoUsada("media");
+
+  } else if (nivel === "dificil") {
+    const pugsEscondidos = posicoesPugs.filter(function (p) {
+      return estadoCasas[p.linha][p.coluna] !== "pug";
+    });
+
+    if (pugsEscondidos.length > 0) {
+      const escolhido = pugsEscondidos[Math.floor(Math.random() * pugsEscondidos.length)];
+      estadoCasas[escolhido.linha][escolhido.coluna] = "pug";
+      pugsEncontrados++;
+      
+      desenharCasa(escolhido.linha, escolhido.coluna);
+      atualizarContadorDePugs();
+
+      mensagemJogo.textContent = "Mestre do Doku: Um pug foi revelado no tabuleiro!";
+      mensagemJogo.className = "mensagem-jogo";
+
+      if (pugsEncontrados === tamanhoAtual) {
+        terminarJogo("Você encontrou todos os pugs! 🎉", true);
+      }
+    }
+
+    marcarHabilidadeComoUsada("dificil");
+  }
+}
 
 /* ==========================================================
    Início de partida
@@ -734,6 +963,7 @@ function iniciarJogo() {
   criarTabuleiro();
   atualizarVidas();
   atualizarContadorDePugs();
+  reiniciarHabilidades();
 
   if (MODO_DEPURACAO) {
     console.table(posicoesPugs);
