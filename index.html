@@ -19,8 +19,6 @@
       <div class="area-dificuldade cartao">
         <h2>Dificuldade</h2>
         <div class="opcoes-dificuldade">
-          <!-- O texto de .detalhe (tamanho e número de pugs) é preenchido pelo script.js,
-               a partir de CONFIG_DIFICULDADES. -->
           <button type="button" class="dificuldade" data-dificuldade="facil">
             <span class="nome">Fácil</span><span class="detalhe"></span>
           </button>
@@ -64,12 +62,11 @@
           <li><strong>Difícil:</strong> tabuleiro 10×10 com 10 pugs.</li>
         </ul>
 
-        <h2>Como jogar</h2>
+        <h2>Como jogar e Habilidades</h2>
         <ul>
-          <li>Clique uma vez em uma casa para marcar um X, a sua anotação de que ali não há pug. Clique de novo, sem pressa, para tirar o X.</li>
+          <li>Clique uma vez em uma casa para marcar um X. Clique de novo para tirar o X. Você também pode arrastar o mouse para marcar várias casas.</li>
           <li>Para palpitar que ali há um pug, dê dois cliques rápidos seguidos na mesma casa (clique duplo).</li>
-          <li>Se acertar, o pug aparece. Se errar, você perde uma vida (você começa com 3).</li>
-          <li>Você vence ao encontrar todos os pugs e perde se ficar sem vidas.</li>
+          <li>Use as <strong>Habilidades Matemáticas</strong> durante o jogo para resolver desafios do 6º ano e obter dicas valiosas!</li>
         </ul>
       </div>
 
@@ -89,17 +86,49 @@
         <p class="chip">Pugs: <strong><span id="pugs-encontrados">0</span> / <span id="pugs-total">0</span></strong></p>
       </div>
 
+      <!-- PAINEL DE HABILIDADES MATEMÁTICAS -->
+      <div class="painel-habilidades cartao">
+        <h2>Habilidades Especiais (Quiz)</h2>
+        <div class="botoes-habilidades">
+          <button id="btn-hab-facil" class="btn-habilidade" type="button">
+            🐶 Visão de Pug <span class="nivel-hab">(Fácil)</span>
+          </button>
+          <button id="btn-hab-media" class="btn-habilidade" type="button">
+            🦴 Faro Matemático <span class="nivel-hab">(Médio)</span>
+          </button>
+          <button id="btn-hab-dificil" class="btn-habilidade" type="button">
+            🐾 Mestre do Doku <span class="nivel-hab">(Difícil)</span>
+          </button>
+        </div>
+      </div>
+
       <p id="mensagem-jogo" class="mensagem-jogo" role="status"></p>
 
       <div id="tabuleiro"></div>
 
-      <p class="dica-jogo">Um clique: põe ou tira o X &nbsp;·&nbsp; Clique duplo rápido: palpite</p>
+      <p class="dica-jogo">Um clique / Arraste: põe/tira X &nbsp;·&nbsp; Clique duplo rápido: palpite</p>
 
       <div class="botoes-jogo">
         <button id="btn-novo-jogo" type="button">Novo Jogo</button>
         <button id="btn-menu" type="button">Menu</button>
       </div>
     </section>
+
+    <!-- MODAL DE QUIZ DE MATEMÁTICA -->
+    <div id="modal-quiz" class="modal-fundo escondido" role="dialog" aria-modal="true">
+      <div class="modal-conteudo cartao">
+        <h2 id="quiz-titulo">Desafio de Matemática (6º Ano)</h2>
+        <p id="quiz-enunciado" class="quiz-enunciado"></p>
+        
+        <div id="quiz-opcoes" class="quiz-opcoes"></div>
+
+        <p id="quiz-feedback" class="aviso" role="alert"></p>
+
+        <div class="quiz-botoes">
+          <button id="btn-quiz-fechar" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
 
   </main>
 
