@@ -17,6 +17,12 @@ const TENTATIVAS_POR_TABULEIRO = 200;
 const AJUSTES_POR_TENTATIVA = 40;
 const SOLUCOES_POR_RODADA = 12; // quantas soluções erradas são atacadas por rodada de ajustes
 
+// Dois cliques na mesma casa com no máximo este intervalo (em milissegundos)
+// formam um clique duplo, que é o palpite. Em cliques mais lentos que isso,
+// cada clique apenas põe ou tira o X. Aumente se estiver difícil acertar o
+// clique duplo; diminua se estiver palpitando sem querer.
+const TEMPO_CLIQUE_DUPLO = 350;
+
 /* Configuração por dificuldade.
    "tamanho" é, ao mesmo tempo, o número de linhas, de colunas, de pugs e de
    regiões coloridas (um pug por cor): Fácil = 5 x 5 com 5 pugs, Médio = 8 x 8
@@ -72,6 +78,10 @@ let mapaRegioes = [];
 
 // O que o jogador fez em cada casa: "vazia", "marcada" (X), "pug" ou "errada".
 let estadoCasas = [];
+
+// O último clique dado ({ linha, coluna, quando }), guardado para o caso de o
+// próximo clique formar um clique duplo. É null quando não há clique pendente.
+let ultimoClique = null;
 
 // Os elementos HTML das casas: casasDOM[linha][coluna].
 let casasDOM = [];
@@ -645,20 +655,40 @@ function terminarJogo(mensagem, venceu) {
   tabuleiro.classList.add("encerrado");
 }
 
-// 1º clique em uma casa vazia: marca um X ("acho que aqui não tem pug").
-// Clique seguinte na casa marcada: é um palpite de que ali TEM pug.
+// A hora atual em milissegundos. Fica numa função própria para os testes
+// poderem controlar o relógio.
+function agora() {
+  return Date.now();
+}
+
+// Diz se este clique é o segundo de um clique duplo rápido na mesma casa.
+// Um clique duplo "gasta" os dois cliques: o clique seguinte recomeça a contagem.
+function ehCliqueDuplo(linha, coluna) {
+  const momento = agora();
+
+  const duplo =
+    ultimoClique !== null &&
+    ultimoClique.linha === linha &&
+    ultimoClique.coluna === coluna &&
+    momento - ultimoClique.quando <= TEMPO_CLIQUE_DUPLO;
+
+  ultimoClique = duplo ? null : { linha: linha, coluna: coluna, quando: momento };
+  return duplo;
+}
+
+// Um clique simples: põe o X ("acho que aqui não tem pug") ou, se a casa já
+// tem X, tira o X.
+function alternarX(linha, coluna) {
+  const marcada = estadoCasas[linha][coluna] === "marcada";
+  estadoCasas[linha][coluna] = marcada ? "vazia" : "marcada";
+  desenharCasa(linha, coluna);
+}
+
+// Um clique duplo rápido: é um palpite de que ali TEM pug.
 //   - Acertou: o pug aparece e a casa fica travada.
 //   - Errou: perde uma vida e a casa fica travada com um X vermelho.
-// Casas já resolvidas (pug ou errada) não respondem mais.
-function tratarCliqueNaCasa(linha, coluna) {
-  if (jogoTerminado) return;
-
-  const estado = estadoCasas[linha][coluna];
-  if (estado === "pug" || estado === "errada") return;
-
-  if (estado === "vazia") {
-    estadoCasas[linha][coluna] = "marcada";
-  } else if (temPug(linha, coluna)) {
+function palpitar(linha, coluna) {
+  if (temPug(linha, coluna)) {
     estadoCasas[linha][coluna] = "pug";
     pugsEncontrados++;
   } else {
@@ -674,6 +704,21 @@ function tratarCliqueNaCasa(linha, coluna) {
     terminarJogo("Você encontrou todos os pugs! 🎉", true);
   } else if (vidas === 0) {
     terminarJogo("Acabaram as suas vidas. Fim de jogo.", false);
+  }
+}
+
+// Clique simples: põe ou tira o X. Clique duplo rápido: palpite.
+// Casas já resolvidas (pug ou errada) não respondem mais.
+function tratarCliqueNaCasa(linha, coluna) {
+  if (jogoTerminado) return;
+
+  const estado = estadoCasas[linha][coluna];
+  if (estado === "pug" || estado === "errada") return;
+
+  if (ehCliqueDuplo(linha, coluna)) {
+    palpitar(linha, coluna);
+  } else {
+    alternarX(linha, coluna);
   }
 }
 
@@ -705,6 +750,7 @@ function iniciarJogo() {
   posicoesPugs = novoTabuleiro.pugs;
   mapaRegioes = novoTabuleiro.regioes;
   estadoCasas = criarMatriz(tamanhoAtual, "vazia");
+  ultimoClique = null;
 
   mensagemJogo.textContent = "";
   mensagemJogo.className = "mensagem-jogo";
