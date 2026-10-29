@@ -1,5 +1,5 @@
 /* ==========================================================
-   Doku-Doku — lógica do jogo com Modo Desafio e Habilidades
+   Doku-Doku — lógica do jogo com Habilidades
    ========================================================== */
 
 /* ---------- Configurações gerais ---------- */
@@ -7,17 +7,12 @@
 const NUMERO_DE_CORES = 12;
 const MODO_DEPURACAO = false;
 
-const TENTATIVAS_POR_TABULEIRO = 50;
-const AJUSTES_POR_TENTATIVA = 20;
-const SOLUCOES_POR_RODADA = 6;
-
 const TEMPO_CLIQUE_DUPLO = 350;
 
 const CONFIG_DIFICULDADES = {
   facil:   { nome: "Fácil",   tamanho: 5,  vidas: 3 },
   medio:   { nome: "Médio",   tamanho: 8,  vidas: 3 },
-  dificil: { nome: "Difícil", tamanho: 10, vidas: 3 },
-  desafio: { nome: "🔥 Desafio 25x25", tamanho: 25, vidas: 3 }
+  dificil: { nome: "Difícil", tamanho: 10, vidas: 3 }
 };
 
 const DIRECOES = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -47,8 +42,6 @@ const telaJogo = document.getElementById("tela-jogo");
 const btnInstrucoes = document.getElementById("btn-instrucoes");
 const btnVoltar = document.getElementById("btn-voltar");
 const btnComecar = document.getElementById("btn-comecar");
-const btnModoDesafio = document.getElementById("btn-modo-desafio");
-const btnVerRanking = document.getElementById("btn-ver-ranking");
 const btnNovoJogo = document.getElementById("btn-novo-jogo");
 const btnMenu = document.getElementById("btn-menu");
 
@@ -60,9 +53,6 @@ const elementoVidas = document.getElementById("vidas");
 const mensagemJogo = document.getElementById("mensagem-jogo");
 const contadorPugs = document.getElementById("pugs-encontrados");
 const totalPugs = document.getElementById("pugs-total");
-
-const elementoTempoDesafio = document.getElementById("tempo-desafio");
-const infoTempoContainer = document.getElementById("info-tempo-container");
 
 /* Elementos das Habilidades e Quiz */
 const btnHabFacil = document.getElementById("btn-hab-facil");
@@ -77,19 +67,9 @@ const quizOpcoes = document.getElementById("quiz-opcoes");
 const quizFeedback = document.getElementById("quiz-feedback");
 const btnQuizFechar = document.getElementById("btn-quiz-fechar");
 
-/* Modais de Ranking */
-const modalRanking = document.getElementById("modal-ranking");
-const areaInputNick = document.getElementById("area-input-nick");
-const inputNick = document.getElementById("input-nick");
-const btnSalvarRanking = document.getElementById("btn-salvar-ranking");
-const corpoRanking = document.getElementById("corpo-ranking");
-const btnFecharRanking = document.getElementById("btn-fechar-ranking");
-const subtituloRanking = document.getElementById("subtitulo-ranking");
-
 /* ---------- Estado do jogo ---------- */
 
 let dificuldadeSelecionada = null;
-let isModoDesafio = false;
 let tamanhoAtual = 0;
 let vidasIniciais = 0;
 let vidas = 0;
@@ -101,11 +81,6 @@ let mapaRegioes = [];
 let estadoCasas = [];
 let ultimoClique = null;
 let casasDOM = [];
-
-/* Cronômetro do Desafio */
-let tempoInicioPartida = 0;
-let intervaloTimer = null;
-let tempoDecorridoSegundos = 0;
 
 /* Estado de Arraste do Mouse */
 let mousePressionado = false;
@@ -123,17 +98,7 @@ let habilidadesUsadas = {
 };
 let habilidadeAtualQuiz = null;
 
-/* Gerador Pseudo-Aleatório Seedado (Sincronizado por Hora) */
-let sementeAtual = 123456;
-function prng() {
-  sementeAtual = (sementeAtual * 1664525 + 1013904223) % 4294967296;
-  return sementeAtual / 4294967296;
-}
-
 function mathRandom() {
-  if (isModoDesafio) {
-    return prng();
-  }
   return Math.random();
 }
 
@@ -193,7 +158,6 @@ function mostrarTela(tela) {
     t.classList.add("escondido");
   });
   tela.classList.remove("escondido");
-  pararCronometro();
 }
 
 btnInstrucoes.addEventListener("click", function () {
@@ -224,7 +188,6 @@ botoesDificuldade.forEach(function (botao) {
     botao.classList.add("selecionada");
 
     dificuldadeSelecionada = botao.dataset.dificuldade;
-    isModoDesafio = false;
     avisoDificuldade.textContent = "";
   });
 });
@@ -235,28 +198,13 @@ btnComecar.addEventListener("click", function () {
     return;
   }
 
-  isModoDesafio = false;
   textoDificuldadeAtual.textContent = CONFIG_DIFICULDADES[dificuldadeSelecionada].nome;
-  infoTempoContainer.style.display = "none";
   labelHabFacil.textContent = "(Fácil)";
   mostrarTela(telaJogo);
   iniciarJogo();
 });
 
-btnModoDesafio.addEventListener("click", function () {
-  dificuldadeSelecionada = "desafio";
-  isModoDesafio = true;
-  sementeAtual = Math.floor(Date.now() / 3600000); // Atualiza de 1 em 1 hora
-  textoDificuldadeAtual.textContent = CONFIG_DIFICULDADES.desafio.nome;
-  infoTempoContainer.style.display = "flex";
-  labelHabFacil.textContent = "(Fácil - 25 casas)";
-  mostrarTela(telaJogo);
-  iniciarJogo();
-});
-
 btnNovoJogo.addEventListener("click", iniciarJogo);
-btnVerRanking.addEventListener("click", function () { abrirRanking(false); });
-btnFecharRanking.addEventListener("click", function () { modalRanking.classList.add("escondido"); });
 
 /* ==========================================================
    Utilitários
@@ -399,6 +347,13 @@ function criarTabuleiro() {
   tabuleiro.replaceChildren();
   tabuleiro.style.setProperty("--n", tamanhoAtual);
 
+  // Calcula dinamicamente o tamanho da célula para ficar bem visível
+  let tamanhoCelula = 52; // Fácil (5x5)
+  if (tamanhoAtual === 8) tamanhoCelula = 46;  // Médio (8x8)
+  if (tamanhoAtual === 10) tamanhoCelula = 40; // Difícil (10x10)
+
+  tabuleiro.style.setProperty("--celula", tamanhoCelula + "px");
+
   casasDOM = [];
   const fragmento = document.createDocumentFragment();
 
@@ -480,39 +435,9 @@ function marcarRestricoesPug(pugLinha, pugColuna) {
 
 function terminarJogo(mensagem, venceu) {
   jogoTerminado = true;
-  pararCronometro();
   mensagemJogo.textContent = mensagem;
   mensagemJogo.className = "mensagem-jogo " + (venceu ? "vitoria" : "derrota");
   tabuleiro.classList.add("encerrado");
-
-  if (venceu && isModoDesafio) {
-    abrirRanking(true);
-  }
-}
-
-/* ==========================================================
-   Cronômetro
-   ========================================================== */
-
-function iniciarCronometro() {
-  tempoInicioPartida = Date.now();
-  tempoDecorridoSegundos = 0;
-  elementoTempoDesafio.textContent = "00:00";
-  if (intervaloTimer) clearInterval(intervaloTimer);
-
-  intervaloTimer = setInterval(function () {
-    tempoDecorridoSegundos++;
-    const mins = Math.floor(tempoDecorridoSegundos / 60).toString().padStart(2, '0');
-    const segs = (tempoDecorridoSegundos % 60).toString().padStart(2, '0');
-    elementoTempoDesafio.textContent = mins + ":" + segs;
-  }, 1000);
-}
-
-function pararCronometro() {
-  if (intervaloTimer) {
-    clearInterval(intervaloTimer);
-    intervaloTimer = null;
-  }
 }
 
 function agora() {
@@ -723,9 +648,8 @@ function marcarHabilidadeComoUsada(nivel) {
 function aplicarRecompensa(nivel) {
   if (nivel === "facil") {
     let reveladas = 0;
-    let limite = 3; // fácil regular
-    if (isModoDesafio) limite = 25; // Aprimorada para o Modo Desafio
-    else if (dificuldadeSelecionada === "medio") limite = 5;
+    let limite = 3;
+    if (dificuldadeSelecionada === "medio") limite = 5;
     else if (dificuldadeSelecionada === "dificil") limite = 8;
     
     const casasVaziasSemPug = [];
@@ -795,62 +719,6 @@ function aplicarRecompensa(nivel) {
 }
 
 /* ==========================================================
-   Sistema de Ranking
-   ========================================================== */
-
-function abrirRanking(mostrarSalvar) {
-  modalRanking.classList.remove("escondido");
-  if (mostrarSalvar && isModoDesafio) {
-    areaInputNick.style.display = "block";
-    subtituloRanking.textContent = "Parabéns! Tempo: " + elementoTempoDesafio.textContent + " | Vidas restantes: " + vidas;
-    inputNick.value = "";
-  } else {
-    areaInputNick.style.display = "none";
-    subtituloRanking.textContent = "Melhores tempos no Modo Desafio (25x25):";
-  }
-  carregarTabelaRanking();
-}
-
-btnSalvarRanking.addEventListener("click", function () {
-  const nick = inputNick.value.trim() || "Anônimo";
-  const tempoStr = elementoTempoDesafio.textContent;
-  const vidasRestantes = vidas;
-  
-  let ranking = JSON.parse(localStorage.getItem("doku_ranking_desafio") || "[]");
-  ranking.push({ nick: nick, tempoStr: tempoStr, tempoSeg: tempoDecorridoSegundos, vidas: vidasRestantes });
-  
-  // Ordena por menor tempo e maior número de vidas
-  ranking.sort((a, b) => a.tempoSeg !== b.tempoSeg ? a.tempoSeg - b.tempoSeg : b.vidas - a.vidas);
-  
-  localStorage.setItem("doku_ranking_desafio", JSON.stringify(ranking));
-  areaInputNick.style.display = "none";
-  carregarTabelaRanking();
-});
-
-function carregarTabelaRanking() {
-  corpoRanking.replaceChildren();
-  let ranking = JSON.parse(localStorage.getItem("doku_ranking_desafio") || "[]");
-  
-  if (ranking.length === 0) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="4" style="padding: 10px;">Nenhum registro ainda. Seja o primeiro!</td>`;
-    corpoRanking.appendChild(tr);
-    return;
-  }
-
-  ranking.forEach((item, index) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="padding: 6px;">${index + 1}º</td>
-      <td style="padding: 6px; font-weight: bold;">${item.nick}</td>
-      <td style="padding: 6px;">${item.tempoStr}</td>
-      <td style="padding: 6px;">${item.vidas} ♥</td>
-    `;
-    corpoRanking.appendChild(tr);
-  });
-}
-
-/* ==========================================================
    Início de partida
    ========================================================== */
 
@@ -879,12 +747,6 @@ function iniciarJogo() {
   atualizarVidas();
   atualizarContadorDePugs();
   reiniciarHabilidades();
-
-  if (isModoDesafio) {
-    iniciarCronometro();
-  } else {
-    pararCronometro();
-  }
 
   if (MODO_DEPURACAO) {
     console.table(posicoesPugs);
